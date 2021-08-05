@@ -1,21 +1,28 @@
 import React from "react";
+import { Container, Button, Card } from "react-bootstrap";
+import { Link } from "react-router-dom";
+import "./Browser.css"
 export default function Browser(p) {
     const rooms = [];
     return (
         <div className="Browser">
-            <a className="btn btn-primary" href={"/app/addChat"}>Add Room</a>
-            <div className="d-flex flex-wrap">
-                {rooms.map(r =>
-                    <div className="card" style={{ width: "18rem" }}>
-                        <a href={"/room/" + r.id}>
-                            <div className="card-body">
-                                <h5 className="card-title">{r.name}</h5>
-                                <p className="card-text">{r.description}</p>
-                            </div>
-                        </a>
-                    </div>
-                )}
-            </div>
+            <Container>
+                <Link to={`/app/addChat`} >
+                    <Button variant="primary" >Add Room</Button>
+                </Link>
+                <div className="d-flex flex-wrap">
+                    {rooms.map(r =>
+                        <Card style={{ width: "18rem" }}>
+                            <a href={"/room/" + r.id}>
+                                <Card.Body>
+                                    <Card.Title>{r.name}</Card.Title>
+                                    <Card.Text>{r.description}</Card.Text>
+                                </Card.Body>
+                            </a>
+                        </Card>
+                    )}
+                </div>
+            </Container>
         </div>
     )
 }

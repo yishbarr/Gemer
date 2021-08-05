@@ -1,5 +1,5 @@
 import "bootstrap/dist/css/bootstrap.min.css";
-import { BrowserRouter, Route } from "react-router-dom";
+import { BrowserRouter, Route, Switch } from "react-router-dom";
 import './App.css';
 import "./config/firebaseConfig";
 import Store from "./functions/Store";
@@ -12,8 +12,10 @@ function App() {
     <BrowserRouter>
       <Store>
         <div className="App">
-          <LogonRoute path="/app"  component={Landing} />
-          <Route path="/" component={Logon} />
+          <Switch>
+            <LogonRoute path={"/app"} component={Landing} />
+            <Route component={Logon} />
+          </Switch>
         </div>
       </Store>
     </BrowserRouter>

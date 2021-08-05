@@ -1,3 +1,21 @@
 .Landing{
     height: 100vh;
 }
+.navItem{
+    border-bottom-color: white;
+    border-style: solid;
+    border-width: 2px;
+    border-top: none;
+    border-left: none;
+    border-right: none;
+    transition: background-color 200ms linear;
+}
+.navItem:hover{
+    background-color: grey;
+}
+.Container{
+    transition: 200ms;
+}
+#sidebarFolder:hover{
+    color: blue;
+}
