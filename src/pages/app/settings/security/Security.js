@@ -9,12 +9,21 @@ export default function Security(p) {
                     <Form.Label>Email</Form.Label>
                     <Form.Control type="email" className="form-control fields" placeholder="Eg: name@domain.com" />
                     <br />
+                    <Button variant="danger">Change Email</Button>
+                    <br />
+                    <br />
                     <Form.Label>New Password</Form.Label>
                     <Form.Control type="password" className="form-control fields" placeholder="Type password here" />
                     <br />
-                    <Button variant="danger">Apply</Button>
+                    <Form.Label>Confirm Password</Form.Label>
+                    <Form.Control type="password" className="form-control fields" placeholder="Type password here" />
+                    <br />
+                    <Button variant="danger">Change Password</Button>
+                    <br />
+                    <br />
+                    <Button variant="danger">Delete Account</Button>
                 </Form>
             </Container>
-        </div>
+        </div >
     )
 }

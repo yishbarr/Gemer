@@ -7,12 +7,12 @@ import "./Logon.css";
 export default function Logon(p) {
     const [state, dispatch] = useContext(Context);
     const auth = firebase.auth();
-    const logon = (email, password) => {
+    const logon = async (email, password) => {
         auth.signInWithEmailAndPassword(email, password)
             .then(enter)
             .catch(() => { })
     }
-    const register = (email, password) => {
+    const register = async (email, password) => {
         auth.createUserWithEmailAndPassword(email, password)
             .then(user => addUserToDataBase("email", document.getElementById.apply(NICKNAME).value, user.user.email))
             .then(enter)
@@ -38,20 +38,22 @@ export default function Logon(p) {
 
 
     }
-    const addUserToDataBase = (account, nickName, email) => {
+    const addUserToDataBase = async (account, nickName, email) => {
         const ref = firebase.database()
             .ref(`users/${auth.currentUser.uid}`);
-        ref.child(account).set(
-            {
-                email: email
-            }
-        )
-        ref.child("profile").set(
-            {
-                nickName: nickName,
-                favGames: ""
-            }
-        )
+        if (!(await ref.get()).exists()) {
+            ref.child(account).set(
+                {
+                    email: email
+                }
+            )
+            ref.child("profile").set(
+                {
+                    nickName: nickName,
+                    favGames: ""
+                }
+            )
+        }
     }
     const enter = () => {
         dispatch({ type: "SET_AUTH", payload: true });
