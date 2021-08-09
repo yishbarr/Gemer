@@ -1,11 +1,9 @@
 import React from "react";
-import { Container, Button, Card } from "react-bootstrap";
+import { Button, Card, Container } from "react-bootstrap";
 import { Link } from "react-router-dom";
-import "./Browser.css"
 export default function Browser(p) {
     const rooms = [];
     return (
-        <div className="Browser">
             <Container>
                 <Link to={`/app/addChat`} >
                     <Button variant="primary" >Add Room</Button>
@@ -23,6 +21,5 @@ export default function Browser(p) {
                     )}
                 </div>
             </Container>
-        </div>
     )
 }

@@ -3,22 +3,25 @@ import React, { useContext } from "react";
 import { Button, Col, Container, Form, Row } from "react-bootstrap";
 import { Link, Redirect, Route, Switch } from "react-router-dom";
 import { Context } from "../../functions/Store";
-import "./Logon.css";
 export default function Logon(p) {
     const [state, dispatch] = useContext(Context);
     const auth = firebase.auth();
+    //Check if user signed in or is already signed in.
+    auth.onAuthStateChanged(async a => {
+        if (a != null) {
+            dispatch({ type: "SET_AUTH", payload: true });
+        }
+    })
     const logon = async (email, password) => {
         auth.signInWithEmailAndPassword(email, password)
-            .then(enter)
             .catch(() => { })
     }
     const register = async (email, password) => {
         auth.createUserWithEmailAndPassword(email, password)
-            .then(user => addUserToDataBase("email", document.getElementById.apply(NICKNAME).value, user.user.email))
-            .then(enter)
+            .then(user => addUserToDataBase(user.providerData[0].providerId, document.getElementById.apply(NICKNAME).value, user.email))
             .catch(() => { })
     }
-    const registerWithProvider = async (e) => {
+    const registerWithProvider = async e => {
         let provider;
         const account = e.target.value;
         switch (account) {
@@ -27,16 +30,13 @@ export default function Logon(p) {
             case "twitter": provider = new firebase.auth.TwitterAuthProvider(); break;
             default:
         }
-        let user;
         try {
-            user = await (await auth.currentUser.linkWithPopup(provider)).user;
-        } catch (e) {
-            user = await (await auth.signInWithPopup(provider)).user;
+            let user = (await auth.signInWithPopup(provider)).user;
+            addUserToDataBase(user.providerData[0].providerId.split(".")[0], "", user.email)
         }
-        addUserToDataBase(account, "", user.email);
-        enter();
-
-
+        catch (e) {
+            console.log(e);
+        }
     }
     const addUserToDataBase = async (account, nickName, email) => {
         const ref = firebase.database()
@@ -55,9 +55,6 @@ export default function Logon(p) {
             )
         }
     }
-    const enter = () => {
-        dispatch({ type: "SET_AUTH", payload: true });
-    }
     const EMAIL = "email";
     const PASSWORD = "password";
     const NICKNAME = "nickname";
@@ -66,7 +63,6 @@ export default function Logon(p) {
         return <Redirect to="/app" />
     }
     return (
-        <div className="Logon">
             <Container>
                 <div style={{ textAlign: "center" }}>
                     <h1>Welcome to App</h1>
@@ -127,6 +123,5 @@ export default function Logon(p) {
                     </Col>
                 </Row>
             </Container>
-        </div >
     )
 }

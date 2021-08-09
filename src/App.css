@@ -1,6 +1,5 @@
 .App {
-  flex:1;
-  background-size: 100%;
+  height: 100vh;
   background: rgb(27, 40, 56);
 }
 label, h3, h1{
