@@ -2,8 +2,8 @@ import firebase from "firebase";
 import React, { useContext, useState } from "react";
 import { Button, Container, Form } from "react-bootstrap";
 import { Redirect } from "react-router-dom";
+import { Context } from "../../../../context/Store";
 import getProvider from "../../../../functions/getProvider";
-import { Context } from "../../../../functions/Store";
 export default function Security(p) {
     const EMAIL = "email";
     const PASSWORD = "password";

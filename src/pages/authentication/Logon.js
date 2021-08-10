@@ -2,8 +2,8 @@ import firebase from "firebase";
 import React, { useContext, useState } from "react";
 import { Alert, Button, Col, Container, Form, Modal, Row } from "react-bootstrap";
 import { Link, Redirect, Route, Switch } from "react-router-dom";
-import { Context } from "../../functions/Store";
 import getProvider from "../../functions/getProvider";
+import { Context } from "../../context/Store";
 export default function Logon(p) {
     //States
     const [state, dispatch] = useContext(Context);
@@ -25,7 +25,7 @@ export default function Logon(p) {
     const logon = async (email, password) => {
         auth.signInWithEmailAndPassword(email, password)
             .catch(e => {
-                const message = "Logon failed. ";
+                const message = "Login failed. ";
                 switch (e.code) {
                     case 'auth/wrong-password': setNotification(message + "Please check your password."); break;
                     case 'auth/invalid-email':

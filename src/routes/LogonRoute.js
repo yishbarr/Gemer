@@ -1,6 +1,6 @@
 import React, { useContext } from 'react';
 import { Redirect, Route } from 'react-router-dom';
-import { Context } from '../functions/Store';
+import { Context } from '../context/Store';
 
 const LogonRoute = ({ component: Component, ...rest }) => {
     const [state] = useContext(Context);
