@@ -10,9 +10,6 @@
 .navItem:hover{
     background-color: grey;
 }
-.Container{
-    transition: 200ms;
-}
 #sidebarFolder:hover{
     color: blue;
 }

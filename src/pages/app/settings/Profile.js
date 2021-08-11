@@ -1,14 +1,28 @@
 import firebase from "firebase";
 import React, { useEffect, useState } from "react";
-import { Button, Container, Form } from "react-bootstrap";
+import { Button, Container, Form, Image } from "react-bootstrap";
+import { fieldsClass } from "../../../constants/Classes";
 export default function Profile(p) {
     const user = firebase.auth().currentUser;
     const profileStorageRef = firebase.storage().ref().child(`profile_pics/${user.uid}/profile_picture`);
     const ref = firebase.database().ref(`users/${user.uid}`)
+    const usesPhoto = ref.child("usesPhoto");
     const [nickname, setNickname] = useState(user.displayName);
     const [favGames, setFaveGames] = useState("");
-    const [profilePicture, setProfilePicture] = useState("/assets/img/profile_sample.png")
+    const samplePhoto = "/assets/img/profile_sample.png";
+    const [profilePicture, setProfilePicture] = useState(samplePhoto)
+    const isSample = profilePicture === "/assets/img/profile_sample.png";
 
+    useEffect(() => usesPhoto.get().then(d => d.val() ? setProfilePicture(user.photoURL) : setProfilePicture(samplePhoto)), [user.photoURL]);
+    const untickPhoto = () => {
+        setProfilePicture(samplePhoto);
+        document.getElementById("upload-button").value = "";
+        usesPhoto.set(false);
+    }
+    const tickPhoto = () => {
+        usesPhoto.set(true);
+        setProfilePicture(user.photoURL);
+    }
     const updateProfile = async () => {
         if (ref !== undefined) {
             console.log("update profile");
@@ -16,7 +30,10 @@ export default function Profile(p) {
             ref.child("profile").set({ nickName: nickname, favGames: favGames })
             console.log(document.getElementById("profilePhoto").src);
             try {
-                profileStorageRef.put(await (await fetch(profilePicture)).blob()).then(() => console.log("Uploaded profile photo"));
+                profileStorageRef.put(await (await fetch(profilePicture)).blob()).then(() => console.log("Uploaded profile photo"))
+                    .then(() => profileStorageRef.getDownloadURL())
+                    .then(url => user.updateProfile({ photoURL: url }))
+                    .then(() => usesPhoto.set(true))
             }
             catch (e) {
                 console.log(e);
@@ -31,11 +48,6 @@ export default function Profile(p) {
                 if (profile.exists()) {
                     setFaveGames(profile.child("favGames").val());
                 }
-                profileStorageRef.getDownloadURL()
-                    .then(url =>
-                        url !== "https://firebasestorage.googleapis.com/v0/b/gemer-4648e.appspot.com/o/profile_pics%2FuumpSNyLZje1dABs4fpPPHSLSFA3%2Fprofile_picture?alt=media&token=8139b73a-3ce7-4c4c-b795-1248ee9edcc6"
-                            ? setProfilePicture(url) : null)
-                    .catch(e => console.log(e));
                 console.log(user.uid);
             }
             if (ref !== undefined)
@@ -48,24 +60,29 @@ export default function Profile(p) {
         <Container>
             <h1>Profile</h1>
             <Form>
-                <Form.Label>Nickname</Form.Label>
-                <Form.Control onChange={e => setNickname(e.target.value)} className="form-control fields" type="text" placeholder="Eg: Muselk, ster_, Jerma985, etc" value={nickname} />
-                <br />
-                <Form.Label>Favourite Games</Form.Label>
-                <Form.Control onChange={e => setFaveGames(e.target.value)} className="form-control fields" type="text" placeholder="Eg: Portal 2, Team Fortress 2, etc" value={favGames} />
-                <br />
-                <Form.Label>Profile Photo</Form.Label>
-                <br />
-                <img src={profilePicture} style={{ border: "3px black solid", width: "30%" }} alt="Profile" id="profilePhoto" />
-                <br />
-                <br />
-                <label className="btn btn-primary" style={{ width: "15%" }} htmlFor="upload-button">Upload Photo</label>
-                <input id="upload-button" type="file" accept="image/*" className="btn btn-primary" style={{ display: "none" }}
-                    onChange={e => setProfilePicture(URL.createObjectURL(e.target.files[0]))}></input>
-                <br />
-                <br />
-                <Button onClick={updateProfile} variant="success" style={{ width: "10%" }}>Apply</Button>
+                <Form.Group className="mb-3" controlId="nicknameGroup" >
+                    <Form.Label>Nickname</Form.Label>
+                    <Form.Control onChange={e => setNickname(e.target.value)} className={fieldsClass} type="text" placeholder="Eg: Muselk, ster_, Jerma985, etc" value={nickname} />
+                </Form.Group>
+                <Form.Group className="mb-3" controlId="favGroup">
+                    <Form.Label>Favourite Games</Form.Label>
+                    <Form.Control onChange={e => setFaveGames(e.target.value)} className={fieldsClass} type="text" placeholder="Eg: Portal 2, Team Fortress 2, etc" value={favGames} />
+                </Form.Group>
+                <Form.Group className="mb-3">
+                    <Form.Label>Profile Photo</Form.Label>
+                    <br />
+                    <Image src={profilePicture} style={{ border: "3px black solid", width: "30%" }} alt="Profile" id="profilePhoto" />
+                </Form.Group>
+                <Form.Group controlId="usePhoto" className="mb-3">
+                    <Form.Check id="sampleTick" checked={!isSample} label="Use profile photo" type="checkbox" onChange={e => e.target.checked ? tickPhoto() : untickPhoto()} />
+                </Form.Group>
+                <Form.Group className="mb-3">
+                    <Form.Label className="btn btn-primary" style={{ width: "15%" }} htmlFor="upload-button">Upload Photo</Form.Label>
+                    <input id="upload-button" type="file" accept="image/*" className="btn btn-primary" style={{ display: "none" }}
+                        onChange={e => setProfilePicture(URL.createObjectURL(e.target.files[0]))} />
+                </Form.Group>
+                <Button disabled={isSample} onClick={updateProfile} variant="success" style={{ width: "10%" }}>Apply</Button>
             </Form>
-        </Container>
+        </Container >
     )
 }
