@@ -5,6 +5,11 @@ const Reducer = (state, action) => {
                 ...state,
                 auth: action.payload
             };
+        case 'SET_PATH':
+            return {
+                ...state,
+                appPath: action.payload
+            }
         default:
             return state;
     }

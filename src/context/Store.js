@@ -4,11 +4,12 @@ import Reducer from '../functions/Reducer';
 
 const initialState = {
     posts: [],
-    auth:false,
+    auth: false,
+    appPath: "/app",
     error: null
 };
 
-const Store = ({children}) => {
+const Store = ({ children }) => {
     const [state, dispatch] = useReducer(Reducer, initialState);
     return (
         <Context.Provider value={[state, dispatch]}>

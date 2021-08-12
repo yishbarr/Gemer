@@ -9,6 +9,7 @@ import Sidebar from "../../components/Sidebar";
 import Colours from "../../constants/Colours";
 import Browser from "./Browser";
 import AddChat from "./chat/AddChat";
+import Room from "./chat/Room";
 import "./Landing.css";
 import Profile from "./settings/Profile";
 import SecurityComponent from "./settings/security/Security";
@@ -147,7 +148,7 @@ export default function Landing(p) {
                     <Route path={PROFILE_PATH} component={Profile} />
                     <Route path={SECURITY_PATH} component={SecurityComponent} />
                     <Route path={ADD_CHAT_PATH} component={AddChat} />
-                    <Route path={ROOM_PATH} />
+                    <Route path={ROOM_PATH} component={Room}/>
                     <Route path={EXIT_PATH} component={Logout} />
                     <Route path={PATH} component={Browser} exact />
                 </Switch>

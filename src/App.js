@@ -3,6 +3,7 @@ import { Button, Modal } from "react-bootstrap";
 import { Offline } from "react-detect-offline";
 import { BrowserRouter, Route, Switch } from "react-router-dom";
 import './App.css';
+import PathSetter from "./components/PathSetter";
 import "./config/firebaseConfig";
 import Store from "./context/Store";
 import Landing from './pages/app/Landing';
@@ -13,6 +14,7 @@ function App() {
   return (
     <BrowserRouter>
       <Store>
+        <PathSetter />
         <div className="App">
           <Switch>
             <LogonRoute path={"/app"} component={Landing} />

@@ -2,9 +2,9 @@ import firebase from "firebase";
 import React, { useContext, useState } from "react";
 import { Alert, Button, Col, Container, Form, Modal, Row } from "react-bootstrap";
 import { Link, Redirect, Route, Switch } from "react-router-dom";
-import getProvider from "../../functions/getProvider";
-import { Context } from "../../context/Store";
 import { fieldsClass } from "../../constants/Classes";
+import { Context } from "../../context/Store";
+import getProvider from "../../functions/getProvider";
 export default function Logon(p) {
     //States
     const [state, dispatch] = useContext(Context);
@@ -95,7 +95,7 @@ export default function Logon(p) {
     const NICKNAME = "nickname";
     const REGISTER_LINK = `/register`;
     if (state.auth) {
-        return <Redirect to="/app" />;
+        return <Redirect to={state.appPath} />;
     }
     return (
         <Container>
@@ -118,7 +118,7 @@ export default function Logon(p) {
                             <Form.Label>Nickname (Optional. Can be easily changed later.)</Form.Label>
                             <Form.Control className={fieldsClass} type="text" placeholder="eg: masterGamer78" id={NICKNAME} />
                         </Form.Group>
-                        <br/>
+                        <br />
                         <Row xs={"auto"}>
                             <Col>
                                 <Link to="/">

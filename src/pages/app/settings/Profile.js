@@ -13,6 +13,7 @@ export default function Profile(p) {
     const [profilePicture, setProfilePicture] = useState(samplePhoto)
     const isSample = profilePicture === "/assets/img/profile_sample.png";
 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => usesPhoto.get().then(d => d.val() ? setProfilePicture(user.photoURL) : setProfilePicture(samplePhoto)), [user.photoURL]);
     const untickPhoto = () => {
         setProfilePicture(samplePhoto);
