@@ -1,5 +1,5 @@
 import { List, ListItem, ListItemIcon, ListItemText } from "@material-ui/core";
-import { ExitToApp, GroupAdd, Home, Person, Security, UnfoldLess, UnfoldMore } from "@material-ui/icons";
+import { ExitToApp, ForumOutlined, GroupAdd, Home, Person, Security, UnfoldLess, UnfoldMore } from "@material-ui/icons";
 import firebase from "firebase";
 import React, { cloneElement, useEffect, useState } from "react";
 import { Container } from "react-bootstrap";
@@ -17,6 +17,7 @@ export default function Landing(p) {
     const PATH = "/app";
     const PROFILE_PATH = PATH + "/profile";
     const SECURITY_PATH = PATH + "/security";
+    const MY_ROOMS_PATH = PATH + "/myRooms";
     const ADD_CHAT_PATH = PATH + "/addChat";
     const ROOM_PATH = PATH + "/room/:id";
     const EXIT_PATH = PATH + "/exit";
@@ -33,14 +34,19 @@ export default function Landing(p) {
             path: PROFILE_PATH
         },
         {
-            name: "Security",
-            icon: <Security />,
-            path: SECURITY_PATH
+            name: "Your Rooms",
+            icon: <ForumOutlined />,
+            path: MY_ROOMS_PATH
         },
         {
             name: "Add Room",
             icon: <GroupAdd />,
             path: ADD_CHAT_PATH
+        },
+        {
+            name: "Security",
+            icon: <Security />,
+            path: SECURITY_PATH
         },
         {
             name: "Logout",
@@ -52,7 +58,7 @@ export default function Landing(p) {
     const foldSideBar = () => {
         setComponentState({
             ...componentState,
-            container: { ...containerStyle, marginLeft: "70px" },
+            container: { ...containerStyle, marginLeft: "80px" },
             sidebar: { width: "70px" },
             buttonInnerHtml: <UnfoldMore />,
         })
@@ -105,7 +111,7 @@ export default function Landing(p) {
                 setButtonState(state => ({ ...state, func: triggerUnfold, colour: Colours.white }));
 
         }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [windowWidth])
     return (
         <div className="Landing">
@@ -148,9 +154,9 @@ export default function Landing(p) {
                     <Route path={PROFILE_PATH} component={Profile} />
                     <Route path={SECURITY_PATH} component={SecurityComponent} />
                     <Route path={ADD_CHAT_PATH} component={AddChat} />
-                    <Route path={ROOM_PATH} component={Room}/>
+                    <Route path={ROOM_PATH} component={Room} />
                     <Route path={EXIT_PATH} component={Logout} />
-                    <Route path={PATH} component={Browser} exact />
+                    <Route path={PATH} component={Browser}  />
                 </Switch>
             </Container>
         </div>

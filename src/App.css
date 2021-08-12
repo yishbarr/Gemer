@@ -1,8 +1,13 @@
 .App {
-  height: 100vh;
   background: rgb(27, 40, 56);
+  height: auto;
+  min-height: 100vh;
 }
 label, h3, h1{
   color: white;
+}
+.placeholder-light::placeholder{
+  color: white;
+  opacity: 0.7;
 }
 

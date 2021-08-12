@@ -1,1 +1,1 @@
-export const fieldsClass = "bg-dark text-light border-secondary";
+export const fieldsClass = "bg-dark text-light border-secondary placeholder-light";

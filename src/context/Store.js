@@ -6,6 +6,7 @@ const initialState = {
     posts: [],
     auth: false,
     appPath: "/app",
+    rooms:[],
     error: null
 };
 
@@ -17,6 +18,5 @@ const Store = ({ children }) => {
         </Context.Provider>
     )
 };
-
 export const Context = createContext(initialState);
 export default Store;

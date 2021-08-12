@@ -1,12 +1,11 @@
 import React from "react";
 import { Container } from "react-bootstrap";
-import { useLocation } from "react-router-dom";
+import { useParams } from "react-router-dom";
 export default function Room(p) {
-    const location = useLocation();
-    console.log(location);
+    const roomID = useParams().id;
+    console.log(roomID);
     return (
         <Container>
-            
         </Container>
     )
 }
