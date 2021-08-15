@@ -2,10 +2,12 @@ import firebase from "firebase";
 import React, { useEffect, useState } from "react";
 import { Button, Container, Form, Image } from "react-bootstrap";
 import { fieldsClass } from "../../../constants/Classes";
+import Colours from "../../../constants/Colours";
 export default function Profile(p) {
     const user = firebase.auth().currentUser;
     const profileStorageRef = firebase.storage().ref().child(`profile_pics/${user.uid}/profile_picture`);
-    const ref = firebase.database().ref(`users/${user.uid}`)
+    const ref = firebase.database().ref(`users/${user.uid}`);
+    const profileRef = ref.child("profile");
     const usesPhoto = ref.child("usesPhoto");
     const [nickname, setNickname] = useState(user.displayName);
     const [favGames, setFaveGames] = useState("");
@@ -27,13 +29,16 @@ export default function Profile(p) {
     const updateProfile = async () => {
         if (ref !== undefined) {
             console.log("update profile");
-            user.updateProfile({ displayName: nickname })
             ref.child("profile").set({ nickName: nickname, favGames: favGames })
             console.log(document.getElementById("profilePhoto").src);
             try {
                 profileStorageRef.put(await (await fetch(profilePicture)).blob()).then(() => console.log("Uploaded profile photo"))
                     .then(() => profileStorageRef.getDownloadURL())
-                    .then(url => user.updateProfile({ photoURL: url }))
+                    .then(url => {
+                        user.updateProfile({ photoURL: url });
+                        profileRef.child("profilePhoto").set(url);
+                        user.updateProfile({ displayName: nickname, photoURL: url })
+                    })
                     .then(() => usesPhoto.set(true))
             }
             catch (e) {
@@ -45,7 +50,7 @@ export default function Profile(p) {
         const getProfile = () => {
             async function getter() {
                 console.log("getting profile");
-                let profile = await ref.child("profile").get();
+                let profile = await profileRef.get();
                 if (profile.exists()) {
                     setFaveGames(profile.child("favGames").val());
                 }
@@ -72,7 +77,7 @@ export default function Profile(p) {
                 <Form.Group className="mb-3">
                     <Form.Label>Profile Photo</Form.Label>
                     <br />
-                    <Image src={profilePicture} style={{ border: "3px black solid", width: "30%" }} alt="Profile" id="profilePhoto" />
+                    <Image src={profilePicture} style={{ border: "3px solid", borderColor: Colours.gray, borderRadius: 20, width: "30%" }} alt="Profile" id="profilePhoto" />
                 </Form.Group>
                 <Form.Group controlId="usePhoto" className="mb-3">
                     <Form.Check id="sampleTick" checked={!isSample} label="Use profile photo" type="checkbox" onChange={e => e.target.checked ? tickPhoto() : untickPhoto()} />

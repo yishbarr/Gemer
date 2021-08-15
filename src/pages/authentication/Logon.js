@@ -6,13 +6,23 @@ import { fieldsClass } from "../../constants/Classes";
 import { Context } from "../../context/Store";
 import getProvider from "../../functions/getProvider";
 export default function Logon(p) {
+    //
+    const providerLogins = [
+        {
+            src: "./assets/img/google_symbol.svg",
+            value: "google"
+        },
+        {
+            src: "./assets/img/GitHub-Mark-Light-120px-plus.png",
+            value: "github"
+        }
+    ]
     //States
     const [state, dispatch] = useContext(Context);
     const [notification, setNotification] = useState("");
     const [linkPopup, setLinkPopup] = useState(false);
-    const [account, setAccount] = useState();
     const [accountOptions, setAccountOptions] = useState([]);
-    const [crediential, setCrediential] = useState();
+    const [credential, setCredential] = useState();
 
     const auth = firebase.auth();
     //Check if user signed in or is already signed in.
@@ -49,11 +59,11 @@ export default function Logon(p) {
                 }
             })
     };
-    const registerWithProvider = async e => {
-        const provider = getProvider(e.target.value);
+    const registerWithProvider = async p => {
+        const provider = getProvider(p);
         try {
             const user = (await auth.signInWithPopup(provider)).user;
-            addUserToDataBase(user.providerData[0].providerId.split(".")[0], "", user.email)
+            addUserToDataBase(splitFromTopDomain(user.providerData[0].providerId), "", user.email)
             return user;
         }
         catch (e) {
@@ -61,17 +71,18 @@ export default function Logon(p) {
                 case 'auth/account-exists-with-different-credential':
                     setAccountOptions(await auth.fetchSignInMethodsForEmail(e.email));
                     setLinkPopup(true);
-                    setCrediential(e.crediential);
+                    setCredential(e.credential);
                     break;
                 default:
                     console.log(e);
             }
         }
     };
-    const linkWithUser = () => registerWithProvider(account).then(user => user.linkWithCredential(crediential));
+    const linkWithUser = () => registerWithProvider(splitFromTopDomain(document.getElementById("providerSelector").value)).then(user => user.linkWithCredential(credential));
     const addUserToDataBase = async (account, nickname, email) => {
         const ref = firebase.database()
             .ref(`users/${auth.currentUser.uid}`);
+        const profile = ref.child("profile");
         if (!(await ref.get()).exists()) {
             if (nickname.length > 0)
                 auth.currentUser.updateProfile({ displayName: nickname });
@@ -80,15 +91,22 @@ export default function Logon(p) {
                     email: email
                 }
             )
-            ref.child("profile").set(
+            profile.set(
                 {
                     nickName: nickname.length > 0 ? nickname : auth.currentUser.displayName,
-                    favGames: ""
+                    favGames: "",
+                    profilePhoto: auth.currentUser.photoURL
                 }
             )
         }
+        else
+            auth.currentUser.updateProfile({
+                photoURL: await (await profile.child("profilePhoto").get()).val(),
+                displayName: await (await profile.child("nickName").get()).val()
+            })
     };
     const hidePopup = () => setLinkPopup(false);
+    const splitFromTopDomain = str => str.split(".")[0]
     //ID constants
     const EMAIL = "email";
     const PASSWORD = "password";
@@ -158,10 +176,12 @@ export default function Logon(p) {
                 </Switch>
             </Form>
             <br />
-            <Row>
-                <Col>
-                    <input type="image" src="./assets/img/google_symbol.svg" style={{ 'width': '75px', 'height': '75px' }} value="google" onClick={registerWithProvider} alt="Google" />
-                </Col>
+            <Row xs="auto">
+                {providerLogins.map(l =>
+                    <Col>
+                        <input type="image" src={l.src} style={{ 'width': '75px', 'height': '75px' }} value={l.value} onClick={e => registerWithProvider(e.target.value)} alt={l.value} />
+                    </Col>
+                )}
             </Row>
             <br />
             {notification.length > 0 ? <Alert variant="primary">
@@ -171,12 +191,13 @@ export default function Logon(p) {
                 {notification}
             </Alert> : ""}
             <Modal show={linkPopup} onHide={hidePopup} backdrop="static">
-                <Modal.Header closeButton />
-                <Modal.Title>Duplicate email</Modal.Title>
+                <Modal.Header closeButton >
+                    <Modal.Title>Duplicate email</Modal.Title>
+                </Modal.Header>
                 <Modal.Body>
-                    <p>An account with that email address already exists. Please log in to one of your accounts to link the new account to the old one.</p>
-                    <Form.Select onChange={setAccount}>
-                        {accountOptions.map(a => <option>{a}</option>)}
+                    <p>An account with that email address already exists. You might have logged into a third party account with a higher priority over your first account. Please log in to one of your accounts to link the new and old accounts.</p>
+                    <Form.Select id="providerSelector">
+                        {accountOptions.map(a => <option value={a}>{a.charAt(0).toUpperCase() + splitFromTopDomain(a.slice(1))}</option>)}
                     </Form.Select>
                 </Modal.Body>
                 <Modal.Footer>

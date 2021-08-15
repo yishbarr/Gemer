@@ -36,18 +36,29 @@ export default function Security(p) {
             });
     }
     const deleteAccount = () => {
-        firebase.storage().ref(`profile_pics/${user.uid}/profile_picture`).delete().catch(e => console.log(e))
-        ref.remove(() => user.delete().then(() => dispatch({ type: "SET_AUTH", payload: false })).catch(async e => {
+        firebase.storage().ref(`profile_pics/${user.uid}/profile_picture`).delete()
+            .catch(e => console.log(e))
+            .finally(() =>
+                ref.remove()
+                    .catch(e => console.log(e))
+                    .finally(() =>
+                        user.delete()
+                            .then(() => dispatch({ type: "SET_AUTH", payload: false }))
+                            .catch(e => {
+                                if (e.code === RECENT_LOGIN_ERROR)
+                                    reauthenticate().then(() => deleteAccount());
+                            })))
+
+        /*.catch(async e => {
             if (e.code === RECENT_LOGIN_ERROR) {
                 console.log("sss");
                 await reauthenticate();
-                deleteAccount();
             }
-        }));
+        }));*/
     }
     const reauthenticate = async () => {
         if (provider !== "password")
-            user.reauthenticateWithPopup(getProvider(provider));
+            await user.reauthenticateWithPopup(getProvider(provider)).catch(e => console.log(e));
         //Make email password option.
         else {
 
@@ -84,14 +95,15 @@ export default function Security(p) {
                 <Modal.Header closeButton>
                     <Modal.Title>Delete Account</Modal.Title>
                 </Modal.Header>
-                <Modal.Body >
+                <Modal.Body>
                     <p>Are you sure you want to delete your account? Type <b>{user.email}</b> to confirm.</p>
-                    <Form.Control value={confirm} onChange={e => setConfirm(e.target.value)} />
-                    <Modal.Footer >
-                        <Button variant="primary" onClick={hideDelete}>Cancel</Button>
-                        <Button disabled={confirm !== user.email} variant="danger" onClick={deleteAccount}>Confirm</Button>
-                    </Modal.Footer>
+                    <p>You might have to reauthenticate if a long time has passed since you signed in.</p>
+                    <Form.Control value={confirm} onChange={e => setConfirm(e.target.value)} className={fieldsClass} />
                 </Modal.Body>
+                <Modal.Footer>
+                    <Button variant="primary" onClick={hideDelete}>Cancel</Button>
+                    <Button disabled={confirm !== user.email} variant="danger" onClick={deleteAccount}>Confirm</Button>
+                </Modal.Footer>
             </Modal>
         </Container>
     )
