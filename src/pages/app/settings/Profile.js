@@ -24,26 +24,29 @@ export default function Profile(p) {
     }
     const tickPhoto = () => {
         usesPhoto.set(true);
+        console.log(user.photoURL);
         setProfilePicture(user.photoURL);
     }
     const updateProfile = async () => {
         if (ref !== undefined) {
             console.log("update profile");
-            ref.child("profile").set({ nickName: nickname, favGames: favGames })
-            console.log(document.getElementById("profilePhoto").src);
+            let url = user.photoURL;
+            user.updateProfile({ displayName: nickname })
             try {
-                profileStorageRef.put(await (await fetch(profilePicture)).blob()).then(() => console.log("Uploaded profile photo"))
-                    .then(() => profileStorageRef.getDownloadURL())
-                    .then(url => {
-                        user.updateProfile({ photoURL: url });
-                        profileRef.child("profilePhoto").set(url);
-                        user.updateProfile({ displayName: nickname, photoURL: url })
-                    })
-                    .then(() => usesPhoto.set(true))
+                if (!isSample) {
+                    const res = await fetch(profilePicture);
+                    if (res.ok) {
+                        console.log("pootis");
+                        await profileStorageRef.put(await (res).blob());
+                        const url = await profileStorageRef.getDownloadURL()
+                        user.updateProfile({ photoURL: url })
+                    }
+                }
             }
             catch (e) {
                 console.log(e);
             }
+            profileRef.set({ nickName: nickname, favGames: favGames, profilePhoto: url })
         }
     }
     useEffect(() => {
@@ -87,7 +90,7 @@ export default function Profile(p) {
                     <input id="upload-button" type="file" accept="image/*" className="btn btn-primary" style={{ display: "none" }}
                         onChange={e => setProfilePicture(URL.createObjectURL(e.target.files[0]))} />
                 </Form.Group>
-                <Button disabled={isSample} onClick={updateProfile} variant="success" style={{ width: "10%" }}>Apply</Button>
+                <Button onClick={updateProfile} variant="success" style={{ width: "10%" }}>Apply</Button>
             </Form>
         </Container >
     )

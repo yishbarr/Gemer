@@ -6,7 +6,7 @@ import { fieldsClass } from "../../constants/Classes";
 import { Context } from "../../context/Store";
 import getProvider from "../../functions/getProvider";
 export default function Logon(p) {
-    //
+    //Provider login symbols
     const providerLogins = [
         {
             src: "./assets/img/google_symbol.svg",
@@ -80,10 +80,10 @@ export default function Logon(p) {
     };
     const linkWithUser = () => registerWithProvider(splitFromTopDomain(document.getElementById("providerSelector").value)).then(user => user.linkWithCredential(credential));
     const addUserToDataBase = async (account, nickname, email) => {
-        const ref = firebase.database()
-            .ref(`users/${auth.currentUser.uid}`);
+        const ref = firebase.database().ref(`users/${auth.currentUser.uid}`);
         const profile = ref.child("profile");
         if (!(await ref.get()).exists()) {
+            //check
             if (nickname.length > 0)
                 auth.currentUser.updateProfile({ displayName: nickname });
             ref.child(account).set(
@@ -107,11 +107,15 @@ export default function Logon(p) {
     };
     const hidePopup = () => setLinkPopup(false);
     const splitFromTopDomain = str => str.split(".")[0]
+    // eslint-disable-next-line eqeqeq
+    const enterKey = e => (e.which || e.keyCode) == 13 ? document.getElementById(APPLY).click() : null;
     //ID constants
     const EMAIL = "email";
     const PASSWORD = "password";
     const NICKNAME = "nickname";
+    const APPLY = "apply";
     const REGISTER_LINK = `/register`;
+    const isRegister = window.location.pathname === REGISTER_LINK;
     if (state.auth) {
         return <Redirect to={state.appPath} />;
     }
@@ -124,11 +128,11 @@ export default function Logon(p) {
             <Form>
                 <Form.Group >
                     <Form.Label>Email</Form.Label>
-                    <Form.Control className={fieldsClass} type="email" placeholder="eg: name@example.com" id={EMAIL} />
+                    <Form.Control className={fieldsClass} type="email" placeholder="eg: name@example.com" id={EMAIL} onKeyPress={enterKey} />
                 </Form.Group>
                 <Form.Group>
                     <Form.Label>Password</Form.Label>
-                    <Form.Control className={fieldsClass} type="password" placeholder="Password" id={PASSWORD} />
+                    <Form.Control className={fieldsClass} type="password" placeholder="Password" id={PASSWORD} onKeyPress={enterKey} />
                 </Form.Group>
                 <Switch>
                     <Route path={REGISTER_LINK} exact>
@@ -145,6 +149,7 @@ export default function Logon(p) {
                             </Col>
                             <Col>
                                 <Button
+                                    id={APPLY}
                                     variant="success"
                                     onClick={() =>
                                         register(document.getElementById(EMAIL).value,
@@ -159,6 +164,7 @@ export default function Logon(p) {
                         <Row xs={"auto"}>
                             <Col>
                                 <Button
+                                    id={APPLY}
                                     variant="success"
                                     onClick={() =>
                                         logon(document.getElementById(EMAIL).value,
@@ -184,12 +190,19 @@ export default function Logon(p) {
                 )}
             </Row>
             <br />
-            {notification.length > 0 ? <Alert variant="primary">
+            <Alert variant="info" show={isRegister}>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-info-circle-fill flex-shrink-0 me-2" viewBox="0 0 16 16">
+                    <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm.93-9.412-1 4.705c-.07.34.029.533.304.533.194 0 .487-.07.686-.246l-.088.416c-.287.346-.92.598-1.465.598-.703 0-1.002-.422-.808-1.319l.738-3.468c.064-.293.006-.399-.287-.47l-.451-.081.082-.381 2.29-.287zM8 5.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2z" />
+                </svg>
+                If your email address belongs to one of the provided third parties' email services, use those instead. Any logon with those parties would otherwise override your email and password account.
+            </Alert>
+            {<br />}
+            <Alert variant="primary" transition show={notification.length > 0}>
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" className="bi bi-exclamation-triangle-fill flex-shrink-0 me-2" viewBox="0 0 16 16" role="img" aria-label="Warning:">
                     <path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z" />
                 </svg>
                 {notification}
-            </Alert> : ""}
+            </Alert>
             <Modal show={linkPopup} onHide={hidePopup} backdrop="static">
                 <Modal.Header closeButton >
                     <Modal.Title>Duplicate email</Modal.Title>
@@ -205,6 +218,6 @@ export default function Logon(p) {
                     <Button variant="success" onClick={linkWithUser}>Login</Button>
                 </Modal.Footer>
             </Modal>
-        </Container>
+        </Container >
     )
 }
