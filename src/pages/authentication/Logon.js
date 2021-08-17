@@ -107,8 +107,7 @@ export default function Logon(p) {
     };
     const hidePopup = () => setLinkPopup(false);
     const splitFromTopDomain = str => str.split(".")[0]
-    // eslint-disable-next-line eqeqeq
-    const enterKey = e => (e.which || e.keyCode) == 13 ? document.getElementById(APPLY).click() : null;
+    const enterKey = e => e.key === "Enter" ? document.getElementById(APPLY).click() : null;
     //ID constants
     const EMAIL = "email";
     const PASSWORD = "password";

@@ -3,10 +3,8 @@ import Reducer from '../functions/Reducer';
 
 
 const initialState = {
-    posts: [],
     auth: false,
     appPath: "/app",
-    rooms:[],
     error: null
 };
 

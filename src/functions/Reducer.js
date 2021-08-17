@@ -10,16 +10,6 @@ const Reducer = (state, action) => {
                 ...state,
                 appPath: action.payload
             };
-        case 'ADD_ROOM':
-            return {
-                ...state,
-                rooms: state.rooms.concat(action.payload)
-            }
-        case 'CLEAR_ROOMS':
-            return {
-                ...state,
-                rooms: []
-            }
         default:
             return state;
     }

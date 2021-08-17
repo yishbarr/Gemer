@@ -3,7 +3,7 @@
   height: auto;
   min-height: 100vh;
 }
-label, h3, h1{
+label, h3, h1, p{
   color: white;
 }
 .placeholder-light::placeholder{

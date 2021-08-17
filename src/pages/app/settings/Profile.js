@@ -20,10 +20,8 @@ export default function Profile(p) {
     const untickPhoto = () => {
         setProfilePicture(samplePhoto);
         document.getElementById("upload-button").value = "";
-        usesPhoto.set(false);
     }
     const tickPhoto = () => {
-        usesPhoto.set(true);
         console.log(user.photoURL);
         setProfilePicture(user.photoURL);
     }
@@ -34,6 +32,7 @@ export default function Profile(p) {
             user.updateProfile({ displayName: nickname })
             try {
                 if (!isSample) {
+                    usesPhoto.set(true);
                     const res = await fetch(profilePicture);
                     if (res.ok) {
                         console.log("pootis");
@@ -42,6 +41,7 @@ export default function Profile(p) {
                         user.updateProfile({ photoURL: url })
                     }
                 }
+                else usesPhoto.set(false);
             }
             catch (e) {
                 console.log(e);

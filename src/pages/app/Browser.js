@@ -1,16 +1,18 @@
 import firebase from "firebase";
-import React, { useContext, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Card, Container } from "react-bootstrap";
 import { Redirect } from "react-router-dom";
 import Colours from "../../constants/Colours";
-import { Context } from "../../context/Store";
 export default function Browser(p) {
-    const [state, dispatch] = useContext(Context)
-    const [roomSelected, setRoomSelected] = useState("")
+    const [rooms, setRooms] = useState()
+    const [roomSelected, setRoomSelected] = useState("");
     useEffect(() => {
-        dispatch({ type: 'CLEAR_ROOMS', payload: null })
-        firebase.database().ref("rooms").get().then(d => d.forEach(r => dispatch({ type: "ADD_ROOM", payload: { ...r.val(), key: r.key } })/*.forEach(async room => dispatch({ type: "ADD_ROOM", payload: await room.val() }))*/))
+        firebase.database().ref("rooms").get().then(d => setRooms(d.val())/*(r => setRooms(rooms => rooms.concat({ ...r.val(), key: r.key }))));*/)
     }, []);
+    const roomsArr = [];
+    if (rooms != null) {
+        Object.keys(rooms).forEach(k => roomsArr.push({ ...rooms[k], key: k }))
+    }
     const BGs = [
         'primary',
         'secondary',
@@ -30,10 +32,10 @@ export default function Browser(p) {
         <Container>
             <h1>Room Browser</h1>
             <div className="flex-wrap">
-                {state.rooms.map((r, i) =>
+                {roomsArr.map((r, i) =>
                     <button onClick={() => setRoomSelected("/app/room/" + r.key)} style={{ all: "unset" }}>
                         <Card style={{ width: "18rem", marginRight: 3, marginBottom: 3, color: Colours.white }} bg={getColour(i)}>
-                            <Card.Img variant="top" src="/assets/img/profile_sample.png"/>
+                            <Card.Img variant="top" src="/assets/img/profile_sample.png" />
                             <Card.Body>
                                 <Card.Title>{r.name}</Card.Title>
                                 <Card.Text>{r.description}</Card.Text>
