@@ -186,7 +186,7 @@ export default function Landing(p) {
                 </Switch>
             </Container>
             <Route path={ROOM_PATH}>
-                <Room folded={folded} />
+                <Room folded={buttonState.colour === Colours.red || folded} />
             </Route>
         </div >
     )

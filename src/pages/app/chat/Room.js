@@ -4,7 +4,6 @@ import { Form } from "react-bootstrap";
 import { Redirect, useParams } from "react-router-dom";
 export default function Room(p) {
     const roomID = useParams().id;
-    console.log(roomID);
     const database = firebase.database();
     const user = firebase.auth().currentUser;
     const roomRef = database.ref("rooms/" + roomID);
