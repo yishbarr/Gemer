@@ -5,6 +5,7 @@ import { Redirect } from "react-router-dom";
 import { fieldsClass } from "../../../constants/Classes";
 export default function AddChat(p) {
     const ref = firebase.database().ref("rooms");
+    const user = firebase.auth().currentUser;
     const [notification, setNotification] = useState("");
     const [roomID, setRoomID] = useState("");
     const addRoom = () => {
@@ -16,7 +17,9 @@ export default function AddChat(p) {
                 name: name,
                 game: game,
                 description: description,
-                managers: [firebase.auth().currentUser.uid]
+                managers: { first: user.uid },
+                joinedUsers: { first: user.uid },
+                photo: ""
             })
                 .then(r => setRoomID(r.key))
                 .catch(e => {
@@ -32,7 +35,7 @@ export default function AddChat(p) {
     if (roomID.length > 0)
         return <Redirect to={"/app/room/" + roomID} />
     return (
-        <Container>
+        <Container >
             <h1>Add Room</h1>
             <Form>
                 <Form.Label>Name of Room</Form.Label>

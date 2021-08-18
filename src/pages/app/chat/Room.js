@@ -1,41 +1,78 @@
 import firebase from "firebase";
 import React, { useEffect, useState } from "react";
-import { Container, Form } from "react-bootstrap";
-import { useParams } from "react-router-dom";
-import Colours from "../../../constants/Colours";
+import { Form } from "react-bootstrap";
+import { Redirect, useParams } from "react-router-dom";
 export default function Room(p) {
     const roomID = useParams().id;
     console.log(roomID);
-    const ref = firebase.database().ref("rooms/" + roomID);
+    const database = firebase.database();
+    const user = firebase.auth().currentUser;
+    const roomRef = database.ref("rooms/" + roomID);
+    const usersRef = database.ref("users")
     const [roomName, setRoomName] = useState("Loading");
     const [messages, setMessages] = useState();
+    const [usersObj, setUsersObj] = useState({})
+    const [ready, setReady] = useState(false);
+    const [validRoom, setValidRoom] = useState(true);
     const getMessages = () =>
-        ref.get()
+        roomRef.get()
             .then(d => {
-                setRoomName(d.child("name").val())
-                setMessages(d.child("messages").val());
+                if (d.exists()) {
+                    setRoomName(d.child("name").val())
+                    setMessages(d.child("messages").val());
+                    return d.child("joinedUsers").val()
+                }
+                else {
+                    setValidRoom(false);
+                    throw new Error("Room doesn't exist");
+                }
+
             })
-    useEffect(getMessages, [])
-    const user = firebase.auth().currentUser;
+            .then(users => {
+                let userExists;
+                const userKeys = Object.keys(users);
+                for (const key of userKeys) {
+                    if (users[key] === user.uid) {
+                        userExists = true;
+                        break;
+                    }
+                }
+                if (!userExists) {
+                    roomRef.child("joinedUsers").push(user.uid);
+                    usersRef.child("joinedRooms").push(roomID);
+                }
+                userKeys.forEach(key => usersRef.child(users[key] + "/profile/nickname").get()
+                    .then(d => setUsersObj(usersObj => { return { ...usersObj, [users[key]]: d.val() } })))
+            })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    useEffect(() => getMessages().then(() => setReady(true)).catch(e => console.log(e)), [roomID, user.uid])
     const sendMessage = e => {
         const target = e.target;
         const content = target.value;
         if (e.key === "Enter" && content.length > 0) {
-            ref.child("messages").push({ content: content, userID: user.uid });
+            roomRef.child("messages").push({ content: content, userID: user.uid });
             messageArr.length = 0;
             target.value = "";
             getMessages();
         }
     }
+    if (!validRoom)
+        return <Redirect to="/app" />
+    if (!ready)
+        return <div />
     const messageArr = [];
     if (messages != null)
         Object.keys(messages).forEach(k => messageArr.push(messages[k]))
     return (
-        <Container style={{backgroundColor:Colours.gray}}>
-            <h1 >{roomName}</h1>
-            {messageArr.map(m => <p>{m.content}</p>)}
+        <div style={{ marginLeft: p.folded ? "70px" : "13%", transition: ".5s" }}>
+            <div style={{ paddingLeft: "5%", backgroundColor: "black", height: 60 }}>
+                <h1>{roomName}</h1>
+            </div>
+            <div style={{ paddingLeft: "7%", overflowY: "auto", height: "85vh" }} id="chatbox">
+                {messageArr.map((m, k) => <p key={k}>{usersObj[m.userID]}: {m.content}</p>)}
+            </div>
             {/* eslint-disable-next-line eqeqeq*/}
             <Form.Control type="text" onKeyPress={sendMessage} />
-        </Container>
+        </div >
     )
 }

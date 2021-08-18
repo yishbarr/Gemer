@@ -33,7 +33,7 @@ export default function Browser(p) {
             <h1>Room Browser</h1>
             <div className="flex-wrap">
                 {roomsArr.map((r, i) =>
-                    <button onClick={() => setRoomSelected("/app/room/" + r.key)} style={{ all: "unset" }}>
+                    <button onClick={() => setRoomSelected("/app/room/" + r.key)} style={{ all: "unset" }} key={i}>
                         <Card style={{ width: "18rem", marginRight: 3, marginBottom: 3, color: Colours.white }} bg={getColour(i)}>
                             <Card.Img variant="top" src="/assets/img/profile_sample.png" />
                             <Card.Body>

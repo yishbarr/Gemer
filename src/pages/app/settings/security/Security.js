@@ -48,13 +48,6 @@ export default function Security(p) {
                                 if (e.code === RECENT_LOGIN_ERROR)
                                     reauthenticate().then(() => deleteAccount());
                             })))
-
-        /*.catch(async e => {
-            if (e.code === RECENT_LOGIN_ERROR) {
-                console.log("sss");
-                await reauthenticate();
-            }
-        }));*/
     }
     const reauthenticate = async () => {
         if (provider !== "password")
@@ -68,7 +61,7 @@ export default function Security(p) {
         return <Redirect to="/" />
     }
     return (
-        <Container>
+        <Container >
             <h1>Security</h1>
             <Form>
                 <Form.Group controlId="emailGroup" className="mb-3">

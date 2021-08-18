@@ -93,7 +93,7 @@ export default function Logon(p) {
             )
             profile.set(
                 {
-                    nickName: nickname.length > 0 ? nickname : auth.currentUser.displayName,
+                    nickname: nickname.length > 0 ? nickname : auth.currentUser.displayName,
                     favGames: "",
                     profilePhoto: auth.currentUser.photoURL
                 }
@@ -102,7 +102,7 @@ export default function Logon(p) {
         else
             auth.currentUser.updateProfile({
                 photoURL: await (await profile.child("profilePhoto").get()).val(),
-                displayName: await (await profile.child("nickName").get()).val()
+                displayName: await (await profile.child("nickname").get()).val()
             })
     };
     const hidePopup = () => setLinkPopup(false);
@@ -182,8 +182,8 @@ export default function Logon(p) {
             </Form>
             <br />
             <Row xs="auto">
-                {providerLogins.map(l =>
-                    <Col>
+                {providerLogins.map((l, k) =>
+                    <Col key={k}>
                         <input type="image" src={l.src} style={{ 'width': '75px', 'height': '75px' }} value={l.value} onClick={e => registerWithProvider(e.target.value)} alt={l.value} />
                     </Col>
                 )}

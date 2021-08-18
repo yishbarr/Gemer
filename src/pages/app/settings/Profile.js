@@ -46,7 +46,7 @@ export default function Profile(p) {
             catch (e) {
                 console.log(e);
             }
-            profileRef.set({ nickName: nickname, favGames: favGames, profilePhoto: url })
+            profileRef.set({ nickname: nickname, favGames: favGames, profilePhoto: url })
         }
     }
     useEffect(() => {

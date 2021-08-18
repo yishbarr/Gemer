@@ -9,6 +9,7 @@ import Sidebar from "../../components/Sidebar";
 import Colours from "../../constants/Colours";
 import Browser from "./Browser";
 import AddChat from "./chat/AddChat";
+import ChatManager from "./chat/ChatManager";
 import Room from "./chat/Room";
 import "./Landing.css";
 import Profile from "./settings/Profile";
@@ -54,7 +55,37 @@ export default function Landing(p) {
             path: EXIT_PATH
         }
     ]
-    const containerStyle = { marginLeft: "15%" }
+    const routes = [
+        {
+            path: PROFILE_PATH,
+            component: Profile
+        },
+        {
+            path: SECURITY_PATH,
+            component: SecurityComponent
+        },
+        {
+            path: ADD_CHAT_PATH,
+            component: AddChat
+        },
+        {
+            path: ROOM_PATH,
+        },
+        {
+            path: MY_ROOMS_PATH,
+            component: ChatManager
+        },
+        {
+            path: EXIT_PATH,
+            component: Logout
+        },
+        {
+            path: PATH,
+            component: Browser
+        },
+
+    ]
+    const containerStyle = { marginLeft: "15%" };
     const foldSideBar = () => {
         setComponentState({
             ...componentState,
@@ -149,16 +180,14 @@ export default function Landing(p) {
                     )}
                 </List>
             </Sidebar>
-            <Container style={componentState.container} id="container">
+            <Container style={{ ...componentState.container, transition: ".5s" }} id="container">
                 <Switch>
-                    <Route path={PROFILE_PATH} component={Profile} />
-                    <Route path={SECURITY_PATH} component={SecurityComponent} />
-                    <Route path={ADD_CHAT_PATH} component={AddChat} />
-                    <Route path={ROOM_PATH} component={Room} />
-                    <Route path={EXIT_PATH} component={Logout} />
-                    <Route path={PATH} component={Browser}  />
+                    {routes.map((r, k) => <Route path={r.path} component={r.component} key={k} />)}
                 </Switch>
             </Container>
-        </div>
+            <Route path={ROOM_PATH}>
+                <Room folded={folded} />
+            </Route>
+        </div >
     )
 }
