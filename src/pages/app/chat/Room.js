@@ -68,7 +68,7 @@ export default function Room(p) {
                 <h1>{roomName}</h1>
             </div>
             <div style={{ paddingLeft: "7%", overflowY: "auto", height: "85vh" }} id="chatbox">
-                {messageArr.map((m, k) => <p key={k}>{usersObj[m.userID]}: {m.content}</p>)}
+                {messageArr.map((m, k) => <p key={k}>{usersObj[m.userID]!=null?usersObj[m.userID]:"Deleted User"}: {m.content}</p>)}
             </div>
             {/* eslint-disable-next-line eqeqeq*/}
             <Form.Control type="text" onKeyPress={sendMessage} />
