@@ -31,13 +31,16 @@ export default function Browser(p) {
     return (
         <Container>
             <h1>Room Browser</h1>
-            <div className="flex-wrap">
+            <div className="d-flex flex-wrap align-items-stretch">
                 {roomsArr.map((r, i) =>
                     <button onClick={() => setRoomSelected("/app/room/" + r.key)} style={{ all: "unset" }} key={i}>
-                        <Card style={{ width: "18rem", marginRight: 3, marginBottom: 3, color: Colours.white }} bg={getColour(i)}>
-                            <Card.Img variant="top" src="/assets/img/profile_sample.png" />
-                            <Card.Body>
+                        <Card style={{ width: "18rem", height: "100%", marginRight: 3, marginBottom: 3, color: Colours.white }} bg={getColour(i)}>
+                            <Card.Header>
                                 <Card.Title>{r.name}</Card.Title>
+                            </Card.Header>
+                            <Card.Img variant="top" src={r.photo} />
+                            <Card.Body >
+                                <Card.Subtitle>{r.game}</Card.Subtitle>
                                 <Card.Text>{r.description}</Card.Text>
                             </Card.Body>
                         </Card>

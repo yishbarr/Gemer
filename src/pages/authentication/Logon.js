@@ -25,6 +25,7 @@ export default function Logon(p) {
     const [credential, setCredential] = useState();
 
     const auth = firebase.auth();
+    const user = auth.currentUser;
     //Check if user signed in or is already signed in.
     auth.onAuthStateChanged(async a => {
         if (a != null) {
@@ -78,29 +79,30 @@ export default function Logon(p) {
             }
         }
     };
-    const linkWithUser = () => registerWithProvider(splitFromTopDomain(document.getElementById("providerSelector").value)).then(user => user.linkWithCredential(credential));
+    const linkWithUser = () => registerWithProvider(splitFromTopDomain(document.getElementById("providerSelector").value)).then(user => user.linkWithCredential(credential)).catch(e => console.log(e));
     const addUserToDataBase = async (account, nickname, email) => {
-        const ref = firebase.database().ref(`users/${auth.currentUser.uid}`);
+        const ref = firebase.database().ref(`users/${user.uid}`);
         const profile = ref.child("profile");
         if (!(await ref.get()).exists()) {
             //check
             if (nickname.length > 0)
-                auth.currentUser.updateProfile({ displayName: nickname });
+                user.updateProfile({ displayName: nickname });
             ref.child(account).set(
                 {
                     email: email
                 }
             )
+            const displayName = user.displayName;
             profile.set(
                 {
-                    nickname: nickname.length > 0 ? nickname : auth.currentUser.displayName,
+                    nickname: nickname.length > 0 ? nickname : displayName.length > 0 ? displayName : "New User",
                     favGames: "",
-                    profilePhoto: auth.currentUser.photoURL
+                    profilePhoto: user.photoURL
                 }
             )
         }
         else
-            auth.currentUser.updateProfile({
+            user.updateProfile({
                 photoURL: await (await profile.child("profilePhoto").get()).val(),
                 displayName: await (await profile.child("nickname").get()).val()
             })

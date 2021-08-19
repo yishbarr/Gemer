@@ -5,7 +5,8 @@ import Reducer from '../functions/Reducer';
 const initialState = {
     auth: false,
     appPath: "/app",
-    error: null
+    error: null,
+    messageListener: null
 };
 
 const Store = ({ children }) => {

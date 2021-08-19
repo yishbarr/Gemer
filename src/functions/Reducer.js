@@ -10,6 +10,11 @@ const Reducer = (state, action) => {
                 ...state,
                 appPath: action.payload
             };
+        case 'SET_MESSAGE_LISTENER':
+            return {
+                ...state,
+                messageListener: action.payload
+            }
         default:
             return state;
     }

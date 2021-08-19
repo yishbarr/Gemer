@@ -1,33 +1,45 @@
 import firebase from "firebase";
 import React, { useState } from "react";
-import { Alert, Button, Container, Form } from "react-bootstrap";
+import { Alert, Button, Container, Form, Image } from "react-bootstrap";
 import { Redirect } from "react-router-dom";
 import { fieldsClass } from "../../../constants/Classes";
+import Colours from "../../../constants/Colours";
 export default function AddChat(p) {
     const ref = firebase.database().ref("rooms");
     const user = firebase.auth().currentUser;
+    const sampleImage = "/assets/img/profile_sample.png";
     const [notification, setNotification] = useState("");
     const [roomID, setRoomID] = useState("");
-    const addRoom = () => {
+    const [image, setImage] = useState(sampleImage)
+    const isSample = image === sampleImage;
+    const addRoom = async () => {
         const name = document.getElementById(NAME).value;
         const game = document.getElementById(GAME).value;
         const description = document.getElementById(DESCRIPTION).value;
         if (name.length > 0 && game.length > 0 && description.length > 0)
-            ref.push({
-                name: name,
-                game: game,
-                description: description,
-                managers: { first: user.uid },
-                joinedUsers: { first: user.uid },
-                photo: ""
-            })
-                .then(r => setRoomID(r.key))
-                .catch(e => {
-                    console.log(e);
-                    setNotification("Adding room failed. Please check connection.")
-                })
+            try {
+                const r = await ref.push({
+                    name: name,
+                    game: game,
+                    description: description,
+                    managers: { first: user.uid },
+                    joinedUsers: { first: user.uid },
+                });
+                const key = r.key
+                let selectedImage = sampleImage;
+                if (!isSample) {
+                    const storageRef = firebase.storage().ref("room_images/" + key + "/room_image")
+                    await storageRef.put(await (await fetch(image)).blob());
+                    selectedImage = await storageRef.getDownloadURL();
+                }
+                await ref.child(key).child("photo").set(selectedImage)
+                setRoomID(key);
+            }
+            catch (e) {
+                console.log(e);
+                setNotification("Adding room failed. Please check connection.")
+            }
         else setNotification("Please check validity of fields.")
-
     }
     const NAME = "name";
     const GAME = "game";
@@ -38,17 +50,28 @@ export default function AddChat(p) {
         <Container >
             <h1>Add Room</h1>
             <Form>
-                <Form.Label>Name of Room</Form.Label>
-                <Form.Control className={fieldsClass} type="text" placeholder="Eg: Portal 2 mapping, TF2 matchmaking, etc" id={NAME} />
+                <Form.Group className="mb-3">
+                    <Form.Label>Name of Room</Form.Label>
+                    <Form.Control className={fieldsClass} type="text" placeholder="Eg: Portal 2 mapping, TF2 matchmaking, etc" id={NAME} />
+                </Form.Group>
+                <Form.Group className="mb-3">
+                    <Form.Label>Game</Form.Label>
+                    <Form.Control className={fieldsClass} type="text" placeholder="Eg: Portal 2, Team Fortress 2, Counter Strike: Global Offensive, etc" id={GAME} />
+                </Form.Group>
+                <Form.Group className="mb-3">
+                    <Form.Label>Description</Form.Label>
+                    <Form.Control className={fieldsClass} type="text" placeholder="Eg: This room is for meeting up for TF2 matchmaking, etc" id={DESCRIPTION} />
+                </Form.Group>
+                <Form.Group className="mb-3">
+                    <Form.Label>Profile Photo</Form.Label>
+                    <br />
+                    <Image src={image} style={{ border: "3px solid", borderColor: Colours.gray, borderRadius: 20, width: "30%" }} alt="Profile" id="image" />
+                </Form.Group>
+                <Form.Label className="btn btn-primary mb-4" style={{ width: "15%" }} htmlFor="upload-button">Upload Image</Form.Label>
+                <input id="upload-button" type="file" accept="image/*" className="btn btn-primary" style={{ display: "none" }}
+                    onChange={e => setImage(URL.createObjectURL(e.target.files[0]))} />
                 <br />
-                <Form.Label>Game</Form.Label>
-                <Form.Control className={fieldsClass} type="text" placeholder="Eg: Portal 2, Team Fortress 2, Counter Strike: Global Offensive, etc" id={GAME} />
-                <br />
-                <Form.Label>Description</Form.Label>
-                <Form.Control className={fieldsClass} type="text" placeholder="Eg: This room is for meeting up for TF2 matchmaking, etc" id={DESCRIPTION} />
-                <br />
-                <Button variant="success" onClick={addRoom}>Add Room</Button>
-                <br />
+                <Button variant="success" onClick={addRoom} className="mb-3" style={{ width: "10%" }}>Add Room</Button>
                 <br />
                 <Alert variant="primary" show={notification.length > 0}>
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" className="bi bi-exclamation-triangle-fill flex-shrink-0 me-2" viewBox="0 0 16 16" role="img" aria-label="Warning:">

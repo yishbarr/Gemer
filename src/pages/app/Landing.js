@@ -1,12 +1,14 @@
 import { List, ListItem, ListItemIcon, ListItemText } from "@material-ui/core";
 import { ExitToApp, ForumOutlined, GroupAdd, Home, Person, Security, UnfoldLess, UnfoldMore } from "@material-ui/icons";
 import firebase from "firebase";
-import React, { cloneElement, useEffect, useState } from "react";
-import { Container } from "react-bootstrap";
+import React, { cloneElement, useContext, useEffect, useState } from "react";
+import { Button, Container, Modal } from "react-bootstrap";
+import { Offline, Online } from "react-detect-offline";
 import { Link, Route, Switch } from "react-router-dom";
 import Logout from "../../components/Logout";
 import Sidebar from "../../components/Sidebar";
 import Colours from "../../constants/Colours";
+import { Context } from "../../context/Store";
 import Browser from "./Browser";
 import AddChat from "./chat/AddChat";
 import ChatManager from "./chat/ChatManager";
@@ -15,6 +17,7 @@ import "./Landing.css";
 import Profile from "./settings/Profile";
 import SecurityComponent from "./settings/security/Security";
 export default function Landing(p) {
+    const [state, dispatch] = useContext(Context);
     const PATH = "/app";
     const PROFILE_PATH = PATH + "/profile";
     const SECURITY_PATH = PATH + "/security";
@@ -111,8 +114,10 @@ export default function Landing(p) {
     const [folded, setFolded] = useState(false);
     const sidebarUserSetting = firebase.database().ref(`users/${firebase.auth().currentUser.uid}/sidebar`);
     useEffect(() => sidebarUserSetting.get().then(setting => setting.val() ? triggerFold() : null)
+        .catch(() => setOffline(true))
+        .catch(e => console.log(e))
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        .catch(e => console.log(e)), [])
+        , [])
     const triggerFold = () => {
         foldSideBar();
         setFolded(true);
@@ -129,7 +134,7 @@ export default function Landing(p) {
     window.addEventListener('resize', () => setWindowWidth(window.innerWidth));
     useEffect(() => {
         const screen = window.screen.availWidth
-        if (screen - windowWidth > screen / 100 * 20) {
+        if (screen - windowWidth > screen / 100 * 15) {
             foldSideBar();
             setButtonState(state => ({ ...state, func: null, colour: Colours.red }));
         }
@@ -144,6 +149,18 @@ export default function Landing(p) {
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [windowWidth])
+    useEffect(() => dispatch({ type: "SET_MESSAGE_LISTENER", payload: sidebarUserSetting }), [])
+    const [offline, setOffline] = useState(false);
+    const offlineModal = (show, message) =>
+        <Modal show={show} backdrop="static">
+            <Modal.Header>
+                <Modal.Title>Connection Offline</Modal.Title>
+            </Modal.Header>
+            <Modal.Body>{message}</Modal.Body>
+            <Modal.Footer>
+                <Button variant="info" onClick={() => window.location.reload()}>Reload</Button>
+            </Modal.Footer>
+        </Modal>
     return (
         <div className="Landing">
             <Sidebar style={componentState.sidebar}>
@@ -163,7 +180,7 @@ export default function Landing(p) {
                 <List>
                     {pages.map((p, key) => {
                         return (
-                            <Link to={p.path} style={{ cursor: "default" }} key={key}>
+                            <Link to={p.path} style={{ cursor: "default" }} key={key} onClick={() => state.messageListener.off("value")}>
                                 <div className="navItem">
                                     <ListItem>
                                         <ListItemIcon>
@@ -188,6 +205,12 @@ export default function Landing(p) {
             <Route path={ROOM_PATH}>
                 <Room folded={buttonState.colour === Colours.red || folded} />
             </Route>
+            <Online>
+                {offlineModal(offline, "There's a problem with the server. Please try again later.")}
+            </Online>
+            <Offline>
+                {offlineModal(true, "You're currently offline. Please check your connection.")}
+            </Offline>
         </div >
     )
 }

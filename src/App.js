@@ -1,6 +1,4 @@
 import "bootstrap/dist/css/bootstrap.min.css";
-import { Button, Modal } from "react-bootstrap";
-import { Offline } from "react-detect-offline";
 import { BrowserRouter, Route, Switch } from "react-router-dom";
 import './App.css';
 import PathSetter from "./components/PathSetter";
@@ -20,17 +18,7 @@ function App() {
             <LogonRoute path={"/app"} component={Landing} />
             <Route component={Logon} />
           </Switch>
-          <Offline>
-            <Modal show backdrop="static">
-              <Modal.Header>
-                <Modal.Title>Connection Offline</Modal.Title>
-              </Modal.Header>
-              <Modal.Body>You're currently offline. Please check your connection.</Modal.Body>
-              <Modal.Footer>
-                <Button variant="info" onClick={() => window.location.reload()}>Reload</Button>
-              </Modal.Footer>
-            </Modal>
-          </Offline>
+          
         </div>
       </Store>
     </BrowserRouter>
