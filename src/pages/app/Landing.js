@@ -149,6 +149,7 @@ export default function Landing(p) {
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [windowWidth])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => dispatch({ type: "SET_MESSAGE_LISTENER", payload: sidebarUserSetting }), [])
     const [offline, setOffline] = useState(false);
     const offlineModal = (show, message) =>
@@ -178,6 +179,7 @@ export default function Landing(p) {
                     {cloneElement(componentState.buttonInnerHtml, { style: { fontSize: 50, color: buttonState.colour, transform: "rotate(90deg)", marginLeft: "10px" }, id: "sidebarFolder" })}
                 </button>
                 <List>
+                    <div className="navItem" />
                     {pages.map((p, key) => {
                         return (
                             <Link to={p.path} style={{ cursor: "default" }} key={key} onClick={() => state.messageListener.off("value")}>
