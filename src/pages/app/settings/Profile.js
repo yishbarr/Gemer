@@ -1,3 +1,4 @@
+import { FormControlLabel, Switch } from "@material-ui/core";
 import firebase from "firebase";
 import React, { useEffect, useState } from "react";
 import { Button, Container, Form, Image } from "react-bootstrap";
@@ -79,18 +80,19 @@ export default function Profile(p) {
                 </Form.Group>
                 <Form.Group className="mb-3">
                     <Form.Label>Profile Photo</Form.Label>
-                    <br />
+                    <Form.Group controlId="usePhoto" className="mb-3">
+                        <FormControlLabel label="Use profile photo" control={
+                            <Switch color="primary" id="sampleTick" checked={!isSample} onChange={e => e.target.checked ? tickPhoto() : untickPhoto()} />
+                        } />
+                    </Form.Group>
                     <Image src={profilePicture} style={{ border: "3px solid", borderColor: Colours.gray, borderRadius: 20, width: "30%" }} alt="Profile" id="profilePhoto" />
                 </Form.Group>
-                <Form.Group controlId="usePhoto" className="mb-3">
-                    <Form.Check id="sampleTick" checked={!isSample} label="Use profile photo" type="checkbox" onChange={e => e.target.checked ? tickPhoto() : untickPhoto()} />
-                </Form.Group>
                 <Form.Group className="mb-3">
-                    <Form.Label className="btn btn-primary" style={{ width: "15%" }} htmlFor="upload-button">Upload Photo</Form.Label>
+                    <Form.Label className="btn btn-primary" style={{ width: "15%", minWidth: "75px" }} htmlFor="upload-button">Upload Photo</Form.Label>
                     <input id="upload-button" type="file" accept="image/*" className="btn btn-primary" style={{ display: "none" }}
                         onChange={e => setProfilePicture(URL.createObjectURL(e.target.files[0]))} />
                 </Form.Group>
-                <Button onClick={updateProfile} variant="success" style={{ width: "10%" }}>Apply</Button>
+                <Button onClick={updateProfile} variant="success" style={{ width: "10%", minWidth: "65px" }}>Apply</Button>
             </Form>
         </Container >
     )

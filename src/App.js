@@ -18,7 +18,6 @@ function App() {
             <LogonRoute path={"/app"} component={Landing} />
             <Route component={Logon} />
           </Switch>
-          
         </div>
       </Store>
     </BrowserRouter>

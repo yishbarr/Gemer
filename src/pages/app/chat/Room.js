@@ -1,7 +1,9 @@
 import { TextareaAutosize } from "@material-ui/core";
+import { SettingsOutlined } from "@material-ui/icons";
 import firebase from "firebase";
 import React, { memo, useContext, useEffect, useRef, useState } from "react";
-import { Redirect, useParams } from "react-router-dom";
+import { Link, Redirect, useParams } from "react-router-dom";
+import {ButtonToolTip} from "../../../components/Tooltips";
 import { fieldsClass } from "../../../constants/Classes";
 import Colours from "../../../constants/Colours";
 import { Context } from "../../../context/Store";
@@ -18,12 +20,14 @@ function Room(p) {
     const [usersObj, setUsersObj] = useState({})
     const [ready, setReady] = useState(false);
     const [validRoom, setValidRoom] = useState(true);
+    const [settingsButtonColour, setSettingsButtonColour] = useState(Colours.white)
     const chatbox = useRef(null);
     const [, dispatch] = useContext(Context);
     const getMessages = async d => {
         setRoomData({
             name: d.child("name").val(),
-            messages: d.child("messages").val()
+            messages: d.child("messages").val(),
+            game: d.child("game").val()
         })
         const users = await d.child("joinedUsers").val()
         let userExists;
@@ -104,14 +108,20 @@ function Room(p) {
         Object.keys(roomData.messages).forEach(k => messageArr.push(roomData.messages[k]))
     return (
         <div style={{ marginLeft: p.folded ? "70px" : "13%", transition: ".5s" }}>
-            <div style={{ paddingLeft: "3%", backgroundColor: Colours.header, height: 60, borderBottomColor: Colours.white, borderWidth: 3, borderBottomStyle: "solid" }}>
+            <div style={{ paddingLeft: "3%", backgroundColor: Colours.header, height: 60, borderBottomColor: Colours.white, borderWidth: 3, borderBottomStyle: "solid", display: "flex", justifyContent: "space-between", paddingRight: "5%", alignItems: "center" }}>
                 <h1>{roomData.name}</h1>
+                <h2>{roomData.game}</h2>
+                <ButtonToolTip arrow title="Room Settings" placeholder="bottom" >
+                    <Link to={"/app/roomSettings/" + roomID} style={{ all: "unset" }} onMouseEnter={() => setSettingsButtonColour(Colours.blue)} onMouseLeave={() => setSettingsButtonColour(Colours.white)}>
+                        <SettingsOutlined style={{ color: settingsButtonColour, fontSize: 50 }} />
+                    </Link>
+                </ButtonToolTip>
             </div>
             <div style={{ paddingLeft: "7%", overflowX: "auto", height: "80vh" }} ref={chatbox}>
                 {messageArr.map((m, k) =>
                     <div key={k}>
                         <p style={{ fontSize: 18, whiteSpace: "pre-line" }}>
-                            <a style={{ fontWeight: "bolder" }}>{usersObj[m.userID] != null ? usersObj[m.userID].nickname : "Deleted User"}</a>: {m.content.split(" ").map(t => t.match(/[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)/) ? <span><a href={"https://" + t}>{t}</a> </span> : t + " ")}
+                            <Link style={{ fontWeight: "bolder" }}>{usersObj[m.userID] != null ? usersObj[m.userID].nickname : "Deleted User"}</Link>: {m.content.split(" ").map(t => t.match(/[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)/) ? <span><a href={"https://" + t}>{t}</a> </span> : t + " ")}
                         </p>
                     </div>)}
             </div>
