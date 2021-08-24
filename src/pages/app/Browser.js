@@ -5,15 +5,24 @@ import { Redirect } from "react-router-dom";
 import Colours from "../../constants/Colours";
 export default function Browser(p) {
     const user = firebase.auth().currentUser;
+    const database = firebase.database();
     const [rooms, setRooms] = useState();
+    const [userRooms, setUserRooms] = useState();
     const [roomSelected, setRoomSelected] = useState("");
     useEffect(() => {
-        firebase.database().ref("rooms").get().then(d => setRooms(d.val()));
-    }, []);
-    const roomsArr = [];
-    if (rooms != null) {
-        Object.keys(rooms).forEach(k => roomsArr.push({ ...rooms[k], key: k }));
-    }
+        database.ref("rooms").get().then(d => setRooms(d.val()));
+        database.ref("users/" + user.uid).get().then(d => setUserRooms({
+            joined: d.child("joinedRooms").val(),
+            managed: d.child("managedRooms").val()
+        }))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [user.uid]);
+    if (rooms == null)
+        return (
+            <Container>
+                <h1>You have no rooms. Add a room to use the Room Browser.</h1>
+            </Container>
+        )
     const BGs = [
         'primary',
         'secondary',
@@ -43,15 +52,17 @@ export default function Browser(p) {
             </Card>
         </button>
     )
+    const extractRooms = roomKeys => roomKeys.map(key => { return { ...rooms[key], key: key } })
     if (window.location.pathname.startsWith("/app/myRooms")) {
-        const checkIfUserJoined = userArr => {
-            for (let key of Object.keys(userArr))
-                if (userArr[key] === user.uid)
-                    return true;
-            return false;
+        const extractUserRooms = roomArr => extractRooms(Object.keys(roomArr))
+        let joinedRooms = [];
+        let managedRooms = [];
+        if (userRooms != null) {
+            if (userRooms.joined != null)
+                joinedRooms = extractUserRooms(userRooms.joined)
+            if (userRooms.managed != null)
+                managedRooms = extractUserRooms(userRooms.managed)
         }
-        const managedRooms = roomsArr.filter(r => checkIfUserJoined(r.managers))
-        const joinedRooms = roomsArr.filter(r => checkIfUserJoined(r.joinedUsers) && !managedRooms.includes(r))
         return (
             <Container>
                 <h1>Your Rooms</h1>
@@ -59,7 +70,7 @@ export default function Browser(p) {
                 <div className="d-flex flex-wrap align-items-stretch">
                     {roomCards(managedRooms)}
                 </div>
-                <br/>
+                <br />
                 <h2>Other Joined Rooms</h2>
                 <div className="d-flex flex-wrap align-items-stretch">
                     {roomCards(joinedRooms)}
@@ -67,6 +78,7 @@ export default function Browser(p) {
             </Container>
         )
     }
+    const roomsArr = extractRooms(Object.keys(rooms));
     return (
         <Container>
             <h1>Room Browser</h1>

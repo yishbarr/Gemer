@@ -3,7 +3,7 @@ import { SettingsOutlined } from "@material-ui/icons";
 import firebase from "firebase";
 import React, { memo, useContext, useEffect, useRef, useState } from "react";
 import { Link, Redirect, useParams } from "react-router-dom";
-import {ButtonToolTip} from "../../../components/Tooltips";
+import { ButtonToolTip } from "../../../components/Tooltips";
 import { fieldsClass } from "../../../constants/Classes";
 import Colours from "../../../constants/Colours";
 import { Context } from "../../../context/Store";
@@ -29,21 +29,15 @@ function Room(p) {
             messages: d.child("messages").val(),
             game: d.child("game").val()
         })
-        const users = await d.child("joinedUsers").val()
-        let userExists;
-        const userKeys = Object.keys(users);
-        for (const key of userKeys) {
-            if (users[key] === user.uid) {
-                userExists = true;
-                break;
-            }
+        const users = await d.child("joinedUsers").val();
+        let userKeys = [];
+        if (users != null) {
+            userKeys = Object.keys(users);
         }
-        if (!userExists) {
-            roomRef.child("joinedUsers").push(user.uid);
-            usersRef.child("joinedRooms").push(roomID);
-        }
-        userKeys.forEach(key => usersRef.child(users[key] + "/profile").get()
-            .then(d => setUsersObj(usersObj => { return { ...usersObj, [users[key]]: d.val() } })))
+        roomRef.child("joinedUsers/" + user.uid).set(user.uid);
+        usersRef.child(user.uid + "/joinedRooms/" + roomID).set(roomID);
+        userKeys.forEach(key => usersRef.child(key + "/profile").get()
+            .then(d => setUsersObj(usersObj => { return { ...usersObj, [key]: d.val() } })))
     }
     useEffect(() =>
         roomRef.get()
@@ -121,7 +115,7 @@ function Room(p) {
                 {messageArr.map((m, k) =>
                     <div key={k}>
                         <p style={{ fontSize: 18, whiteSpace: "pre-line" }}>
-                            <Link style={{ fontWeight: "bolder" }}>{usersObj[m.userID] != null ? usersObj[m.userID].nickname : "Deleted User"}</Link>: {m.content.split(" ").map(t => t.match(/[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)/) ? <span><a href={"https://" + t}>{t}</a> </span> : t + " ")}
+                            <Link style={{ fontWeight: "bolder" }}>{usersObj[m.userID] != null ? usersObj[m.userID].nickname : "Deleted User"}</Link>: {m.content.split(" ").map((t, k) => t.match(/[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)/) ? <span key={k}><a href={"https://" + t}>{t}</a> </span> : t + " ")}
                         </p>
                     </div>)}
             </div>

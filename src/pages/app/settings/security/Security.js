@@ -15,7 +15,7 @@ export default function Security(p) {
     const ref = firebase.database().ref(`users/${user.uid}`);
     const [state, dispatch] = useContext(Context)
     const provider = user.providerData[0].providerId.split(".")[0];
-    const isNotEmail = provider === PASSWORD ? false : true;
+    const isNotEmail = provider !== PASSWORD;
     const [confirm, setConfirm] = useState("");
     const [showDelete, setShowDelete] = useState(false);
     const hideDelete = () => setShowDelete(false);
@@ -38,16 +38,15 @@ export default function Security(p) {
     const deleteAccount = () => {
         firebase.storage().ref(`profile_pics/${user.uid}/profile_picture`).delete()
             .catch(e => console.log(e))
-            .finally(() =>
-                ref.remove()
-                    .catch(e => console.log(e))
-                    .finally(() =>
-                        user.delete()
-                            .then(() => dispatch({ type: "SET_AUTH", payload: false }))
-                            .catch(e => {
-                                if (e.code === RECENT_LOGIN_ERROR)
-                                    reauthenticate().then(() => deleteAccount());
-                            })))
+            .finally(()=>ref.child("joinedRooms"))
+            .finally(() => ref.remove().catch(e => console.log(e))
+                .finally(() =>
+                    user.delete()
+                        .then(() => dispatch({ type: "SET_AUTH", payload: false }))
+                        .catch(e => {
+                            if (e.code === RECENT_LOGIN_ERROR)
+                                reauthenticate().then(() => deleteAccount());
+                        })))
     }
     const reauthenticate = async () => {
         if (provider !== "password")

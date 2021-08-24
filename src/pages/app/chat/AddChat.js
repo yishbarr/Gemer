@@ -5,8 +5,10 @@ import { Redirect } from "react-router-dom";
 import { fieldsClass } from "../../../constants/Classes";
 import Colours from "../../../constants/Colours";
 export default function AddChat(p) {
-    const ref = firebase.database().ref("rooms");
+    const database = firebase.database();
     const user = firebase.auth().currentUser;
+    const roomsRef = database.ref("rooms");
+    const userRef = database.ref("users/" + user.uid + "/managedRooms")
     const sampleImage = "/assets/img/profile_sample.png";
     const [notification, setNotification] = useState("");
     const [roomID, setRoomID] = useState("");
@@ -18,21 +20,21 @@ export default function AddChat(p) {
         const description = document.getElementById(DESCRIPTION).value;
         if (name.length > 0 && game.length > 0 && description.length > 0)
             try {
-                const r = await ref.push({
+                const r = await roomsRef.push({
                     name: name,
                     game: game,
                     description: description,
                     managers: { first: user.uid },
-                    joinedUsers: { first: user.uid },
                 });
                 const key = r.key
+                userRef.child(key).set(key);
                 let selectedImage = sampleImage;
                 if (!isSample) {
                     const storageRef = firebase.storage().ref("room_images/" + key + "/room_image")
                     await storageRef.put(await (await fetch(image)).blob());
                     selectedImage = await storageRef.getDownloadURL();
                 }
-                await ref.child(key).child("photo").set(selectedImage)
+                await roomsRef.child(key).child("photo").set(selectedImage)
                 setRoomID(key);
             }
             catch (e) {

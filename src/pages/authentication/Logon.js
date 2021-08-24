@@ -25,7 +25,7 @@ export default function Logon(p) {
     const [credential, setCredential] = useState();
 
     const auth = firebase.auth();
-    const user = auth.currentUser;
+    let user;
     //Check if user signed in or is already signed in.
     auth.onAuthStateChanged(async a => {
         if (a != null) {
@@ -48,10 +48,15 @@ export default function Logon(p) {
             })
     };
     const register = async (email, password) => {
+        const nickname = document.getElementById(NICKNAME).value;
+        const message = "Registration failed. ";
+        if (nickname.length === 0) {
+            setNotification(message + "Please type in a nickname. It can be changed later.");
+            return;
+        }
         auth.createUserWithEmailAndPassword(email, password)
-            .then(user => addUserToDataBase(user.providerData[0].providerId, document.getElementById.apply(NICKNAME).value, user.email))
+            .then(user => addUserToDataBase(user.providerData[0].providerId, nickname))
             .catch(e => {
-                const message = "Registration failed. ";
                 switch (e.code) {
                     case 'auth/weak-password': setNotification(message + "Password is too weak."); break;
                     case 'auth/invalid-email': setNotification(message + "Email is invalid."); break;
@@ -63,8 +68,8 @@ export default function Logon(p) {
     const registerWithProvider = async p => {
         const provider = getProvider(p);
         try {
-            const user = (await auth.signInWithPopup(provider)).user;
-            addUserToDataBase(splitFromTopDomain(user.providerData[0].providerId), "", user.email)
+            user = (await auth.signInWithPopup(provider)).user;
+            addUserToDataBase(splitFromTopDomain(user.providerData[0].providerId), user.displayName).catch(e => console.log(e))
             return user;
         }
         catch (e) {
@@ -80,22 +85,20 @@ export default function Logon(p) {
         }
     };
     const linkWithUser = () => registerWithProvider(splitFromTopDomain(document.getElementById("providerSelector").value)).then(user => user.linkWithCredential(credential)).catch(e => console.log(e));
-    const addUserToDataBase = async (account, nickname, email) => {
+    const addUserToDataBase = async (account, nickname) => {
         const ref = firebase.database().ref(`users/${user.uid}`);
         const profile = ref.child("profile");
         if (!(await ref.get()).exists()) {
             //check
-            if (nickname.length > 0)
-                user.updateProfile({ displayName: nickname });
+            user.updateProfile({ displayName: nickname });
             ref.child(account).set(
                 {
-                    email: email
+                    email: user.email
                 }
             )
-            const displayName = user.displayName;
             profile.set(
                 {
-                    nickname: nickname.length > 0 ? nickname : displayName.length > 0 ? displayName : "New User",
+                    nickname: nickname,
                     favGames: "",
                     profilePhoto: user.photoURL
                 }
@@ -138,7 +141,7 @@ export default function Logon(p) {
                 <Switch>
                     <Route path={REGISTER_LINK} exact>
                         <Form.Group>
-                            <Form.Label>Nickname (Optional. Can be easily changed later.)</Form.Label>
+                            <Form.Label>Nickname</Form.Label>
                             <Form.Control className={fieldsClass} type="text" placeholder="eg: masterGamer78" id={NICKNAME} />
                         </Form.Group>
                         <br />
@@ -195,7 +198,7 @@ export default function Logon(p) {
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-info-circle-fill flex-shrink-0 me-2" viewBox="0 0 16 16">
                     <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm.93-9.412-1 4.705c-.07.34.029.533.304.533.194 0 .487-.07.686-.246l-.088.416c-.287.346-.92.598-1.465.598-.703 0-1.002-.422-.808-1.319l.738-3.468c.064-.293.006-.399-.287-.47l-.451-.081.082-.381 2.29-.287zM8 5.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2z" />
                 </svg>
-                If your email address belongs to one of the provided third parties' email services, use those instead. Any logon with those parties would otherwise override your email and password account.
+                If your email address belongs to one of the provided third parties' email services, please use that account instead. Any logon with those parties would otherwise override your basic email and password account with the third party account.
             </Alert>
             {<br />}
             <Alert variant="primary" transition show={notification.length > 0}>
