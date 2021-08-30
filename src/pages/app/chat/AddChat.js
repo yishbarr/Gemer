@@ -9,7 +9,7 @@ export default function AddChat(p) {
     const user = firebase.auth().currentUser;
     const roomsRef = database.ref("rooms");
     const userRef = database.ref("users/" + user.uid + "/managedRooms")
-    const sampleImage = "/assets/img/profile_sample.png";
+    const sampleImage = "/assets/img/chat.png";
     const [notification, setNotification] = useState("");
     const [roomID, setRoomID] = useState("");
     const [image, setImage] = useState(sampleImage)
@@ -24,7 +24,7 @@ export default function AddChat(p) {
                     name: name,
                     game: game,
                     description: description,
-                    managers: { first: user.uid },
+                    managers: { [user.uid]: user.uid },
                 });
                 const key = r.key
                 userRef.child(key).set(key);
@@ -65,7 +65,7 @@ export default function AddChat(p) {
                     <Form.Control className={fieldsClass} type="text" placeholder="Eg: This room is for meeting up for TF2 matchmaking, etc" id={DESCRIPTION} />
                 </Form.Group>
                 <Form.Group className="mb-3">
-                    <Form.Label>Profile Photo</Form.Label>
+                    <Form.Label>Image</Form.Label>
                     <br />
                     <Image src={image} style={{ border: "3px solid", borderColor: Colours.gray, borderRadius: 20, width: "30%" }} alt="Profile" id="image" />
                 </Form.Group>

@@ -9,7 +9,7 @@ export default function RoomManager(p) {
     const database = firebase.database();
     const user = firebase.auth().currentUser;
     const roomRef = database.ref("rooms/" + roomID);
-    const [room, setRoom] = useState({});
+    const [room, setRoom] = useState({ });
     const [description, setDescription] = useState();
     const [game, setGame] = useState();
     const [isValidRoom, setIsValidRoom] = useState(true);
@@ -36,17 +36,20 @@ export default function RoomManager(p) {
     if (!isReady)
         return <div />
     let isManager;
-    for (const key of Object.keys(managers)) {
-        if (managers[key] === user.uid) {
+    const managerKeys = Object.keys(managers);
+    console.log(managerKeys);
+    for (const key of managerKeys) {
+        if (key === user.uid) {
             isManager = true;
             break;
         }
     }
     const errorMaker = e => console.log(e);
+    const leaveRoom = () => database.ref("users/" + user.uid + "/joinedRooms/" + roomID).remove(errorMaker).then(() => setDeleted(true));
     const deleteRoom = () => roomRef.remove(errorMaker)
-    .then(() => database.ref("users/" + user.uid + "/joinedRooms/" + roomID).remove(errorMaker))
-    .then(() => database.ref("users/" + user.uid + "/managedRooms/" + roomID).remove(errorMaker))
-    .then(() => setDeleted(true));
+        .then(() => database.ref("users/" + user.uid + "/managedRooms/" + roomID).remove(errorMaker))
+        .then(() => firebase.storage().ref("room_images/" + roomID).delete())
+        .then(leaveRoom)
     if (deleted)
         return <Redirect to="/app/myRooms" />
     return (
@@ -68,7 +71,7 @@ export default function RoomManager(p) {
                 <Button variant="success" disabled={!isManager}>Apply</Button>
             </Form.Group>
             <Form.Group className="mb-3">
-                <Button variant="danger">Leave Room</Button>
+                <Button variant="danger" disabled={isManager && managerKeys.length === 1} onClick={leaveRoom}>Leave Room</Button>
             </Form.Group>
             <Button variant="danger" onClick={() => setShowDelete(true)} disabled={!isManager}>Delete Room</Button>
             <Modal show={showDelete} onHide={hideDelete} >

@@ -9,20 +9,21 @@ export default function Browser(p) {
     const [rooms, setRooms] = useState();
     const [userRooms, setUserRooms] = useState();
     const [roomSelected, setRoomSelected] = useState("");
+    const userRef = database.ref("users/" + user.uid);
     useEffect(() => {
         database.ref("rooms").get().then(d => setRooms(d.val()));
-        database.ref("users/" + user.uid).get().then(d => setUserRooms({
+        userRef.get().then(d => setUserRooms({
             joined: d.child("joinedRooms").val(),
             managed: d.child("managedRooms").val()
         }))
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [user.uid]);
+    const noRoomsComponent =
+        <Container>
+            <h1>You have no rooms. Add a room to use the Room Browser.</h1>
+        </Container>
     if (rooms == null)
-        return (
-            <Container>
-                <h1>You have no rooms. Add a room to use the Room Browser.</h1>
-            </Container>
-        )
+        return noRoomsComponent;
     const BGs = [
         'primary',
         'secondary',
@@ -52,17 +53,26 @@ export default function Browser(p) {
             </Card>
         </button>
     )
-    const extractRooms = roomKeys => roomKeys.map(key => { return { ...rooms[key], key: key } })
+    const extractRooms = roomKeys => Object.keys(roomKeys).map(key => { return { ...rooms[key], key: key } })
     if (window.location.pathname.startsWith("/app/myRooms")) {
-        const extractUserRooms = roomArr => extractRooms(Object.keys(roomArr))
         let joinedRooms = [];
         let managedRooms = [];
         if (userRooms != null) {
             if (userRooms.joined != null)
-                joinedRooms = extractUserRooms(userRooms.joined)
+                joinedRooms = extractRooms(userRooms.joined)
             if (userRooms.managed != null)
-                managedRooms = extractUserRooms(userRooms.managed)
+                managedRooms = extractRooms(userRooms.managed)
         }
+        if (managedRooms.length === 0 && joinedRooms.length === 0)
+            return noRoomsComponent;
+        joinedRooms = joinedRooms.filter(room => {
+            const key = room.key
+            console.log(Object.keys(rooms).includes(key));
+            if (Object.keys(rooms).includes(key))
+                return true;
+            userRef.child("joinedRooms").child(key).remove();
+            return false;
+        })
         return (
             <Container>
                 <h1>Your Rooms</h1>
@@ -78,7 +88,7 @@ export default function Browser(p) {
             </Container>
         )
     }
-    const roomsArr = extractRooms(Object.keys(rooms));
+    const roomsArr = extractRooms(rooms);
     return (
         <Container>
             <h1>Room Browser</h1>

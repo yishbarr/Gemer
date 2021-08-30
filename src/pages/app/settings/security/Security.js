@@ -36,7 +36,7 @@ export default function Security(p) {
             });
     }
     const deleteAccount = () => {
-        firebase.storage().ref(`profile_pics/${user.uid}/profile_picture`).delete()
+        firebase.storage().ref(`profile_pics/${user.uid}`).delete()
             .catch(e => console.log(e))
             .finally(()=>ref.child("joinedRooms"))
             .finally(() => ref.remove().catch(e => console.log(e))
