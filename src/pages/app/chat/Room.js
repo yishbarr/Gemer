@@ -24,6 +24,7 @@ function Room(p) {
     const chatbox = useRef(null);
     const [, dispatch] = useContext(Context);
     const getMessages = async d => {
+        console.log("gggg");
         setRoomData({
             name: d.child("name").val(),
             messages: d.child("messages").val(),
