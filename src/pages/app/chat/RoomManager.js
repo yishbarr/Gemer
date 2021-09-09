@@ -1,17 +1,19 @@
 import firebase from "firebase";
 import { useContext, useEffect, useRef, useState } from "react";
-import { Button, Container, Form, Modal } from "react-bootstrap";
+import { Button, Container, Form, Modal, Alert } from "react-bootstrap";
 import { Redirect, useParams } from "react-router-dom";
 import { fieldsClass } from "../../../constants/Classes";
 import { Context } from "../../../context/Store";
 
 export default function RoomManager(p) {
     const roomID = useParams().id;
+    //Database
     const database = firebase.database();
     const user = firebase.auth().currentUser;
     const roomRef = database.ref("rooms/" + roomID);
     const managerRef = roomRef.child("managers");
     const usersRef = database.ref("users");
+    //States
     const [room, setRoom] = useState({ });
     const [description, setDescription] = useState();
     const [game, setGame] = useState();
@@ -20,11 +22,15 @@ export default function RoomManager(p) {
     const [showDelete, setShowDelete] = useState(false);
     const [confirm, setConfirm] = useState("");
     const [managers, setManagers] = useState([]);
+    const [owners, setOwners] = useState([]);
     const [showManagerNote, setShowManagerNote] = useState("");
     const [deleted, setDeleted] = useState(false);
     const [, dispatch] = useContext(Context)
-    const hideDelete = () => setShowDelete(false);
+    //References
     const isManager = useRef(false);
+    const isOwner = useRef(false);
+    //Functions and other hooks
+    const hideDelete = () => setShowDelete(false);
     useEffect(() => roomRef.get().then(d => {
         if (!d.exists())
             setIsValidRoom(false);
@@ -35,20 +41,27 @@ export default function RoomManager(p) {
         }
     })
         .then(() => {
-            const isManagerCheck = managersRes => {
-                console.log("sdfsdf");
-                setManagers([])
+            const isManagerCheck = (managersRes, owner) => {
+                owner ? setOwners([]) : setManagers([])
                 const managerKeys = Object.keys(managersRes);
                 console.log(managerKeys);
                 for (const key of managerKeys) {
                     if (key === user.uid) {
-                        isManager.current = true;
+                        owner ? isOwner.current = true : isManager.current = true;
                         break;
                     }
                 }
-                managerKeys.forEach(manager => database.ref("users/" + manager + "/profile").child("nickname").get().then(d => d.exists() ? setManagers(managers => managers.concat({ name: d.val(), key: manager })) : null))
+                managerKeys.forEach(manager => database.ref("users/" + manager + "/profile").child("nickname").get().then(d => {
+                    if (d.exists()) {
+                        const adder = managers => managers.concat({ name: d.val(), key: manager })
+                        if (owner)
+                            setOwners(adder)
+                        else setManagers(adder)
+                    }
+                }))
             }
-            managerRef.on("value", d => isManagerCheck(d.val()))
+            managerRef.on("value", d => isManagerCheck(d.val(), false))
+            roomRef.child("owners").on("value", d => isManagerCheck(d.val(), true))
             dispatch({ type: "SET_MESSAGE_LISTENER", payload: managerRef })
             setIsReady(true);
         })
@@ -102,6 +115,12 @@ export default function RoomManager(p) {
                 <Form.Control id="addManagerField" className={fieldsClass + " mb-3"} placeholder="Type in user ID" disabled={!isManager.current} />
                 <Button variant="info" onClick={addManager} disabled={!isManager.current}>Add</Button>
             </Form.Group>
+            <Alert variant="primary" show={showManagerNote.length > 0}>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" className="bi bi-exclamation-triangle-fill flex-shrink-0 me-2" viewBox="0 0 16 16" role="img" aria-label="Warning:">
+                    <path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z" />
+                </svg>
+                {showManagerNote}
+            </Alert>
             {managers.map(m => <p>{m.name} - {m.key}</p>)}
             <Button variant="danger" onClick={() => setShowDelete(true)} disabled={!isManager.current}>Delete Room</Button>
             <Modal show={showDelete} onHide={hideDelete} >

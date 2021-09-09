@@ -6,18 +6,22 @@ import { fieldsClass } from "../../../../constants/Classes";
 import { Context } from "../../../../context/Store";
 import getProvider from "../../../../functions/getProvider";
 export default function Security(p) {
+    //Constants
     const EMAIL = "email";
     const PASSWORD = "password";
     const CONFIRM_PASSWORD = "confirmPassword";
     const RECENT_LOGIN_ERROR = 'auth/requires-recent-login';
+    //Database
     const user = firebase.auth().currentUser;
     const [currentEmail, setCurrentEmail] = useState(user.email);
     const ref = firebase.database().ref(`users/${user.uid}`);
+    //States
     const [state, dispatch] = useContext(Context)
-    const provider = user.providerData[0].providerId.split(".")[0];
-    const isNotEmail = provider !== PASSWORD;
     const [confirm, setConfirm] = useState("");
     const [showDelete, setShowDelete] = useState(false);
+    //Functions, other hooks and variables
+    const provider = user.providerData[0].providerId.split(".")[0];
+    const isNotEmail = provider !== PASSWORD;
     const hideDelete = () => setShowDelete(false);
     const changeEmail = () => {
         const email = document.getElementById(EMAIL).value;

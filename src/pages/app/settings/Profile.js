@@ -5,17 +5,20 @@ import { Button, Container, Form, Image } from "react-bootstrap";
 import { fieldsClass } from "../../../constants/Classes";
 import Colours from "../../../constants/Colours";
 export default function Profile(p) {
+    //Constants
+    const samplePhoto = "/assets/img/profile_sample.png";
+    //Database
     const user = firebase.auth().currentUser;
     const profileStorageRef = firebase.storage().ref().child(`profile_pics/${user.uid}/profile_picture`);
     const ref = firebase.database().ref(`users/${user.uid}`);
     const profileRef = ref.child("profile");
     const usesPhoto = ref.child("usesPhoto");
+    //States
     const [nickname, setNickname] = useState(user.displayName);
     const [favGames, setFaveGames] = useState("");
-    const samplePhoto = "/assets/img/profile_sample.png";
     const [profilePicture, setProfilePicture] = useState(samplePhoto)
+    //Functions, other hooks and variables
     const isSample = profilePicture === "/assets/img/profile_sample.png";
-
     // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => usesPhoto.get().then(d => d.val() ? setProfilePicture(user.photoURL) : setProfilePicture(samplePhoto)), [user.photoURL]);
     const untickPhoto = () => {

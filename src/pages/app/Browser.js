@@ -4,12 +4,15 @@ import { Card, Container } from "react-bootstrap";
 import { Redirect } from "react-router-dom";
 import Colours from "../../constants/Colours";
 export default function Browser(p) {
+    //Database
     const user = firebase.auth().currentUser;
     const database = firebase.database();
+    const userRef = database.ref("users/" + user.uid);
+    //States
     const [rooms, setRooms] = useState();
     const [userRooms, setUserRooms] = useState();
     const [roomSelected, setRoomSelected] = useState("");
-    const userRef = database.ref("users/" + user.uid);
+    //Functions, other hooks and variables.
     useEffect(() => {
         database.ref("rooms").get().then(d => setRooms(d.val()));
         userRef.get().then(d => setUserRooms({

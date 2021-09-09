@@ -5,14 +5,17 @@ import { Redirect } from "react-router-dom";
 import { fieldsClass } from "../../../constants/Classes";
 import Colours from "../../../constants/Colours";
 export default function AddChat(p) {
+    const sampleImage = "/assets/img/chat.png";
+    //Database
     const database = firebase.database();
     const user = firebase.auth().currentUser;
     const roomsRef = database.ref("rooms");
     const userRef = database.ref("users/" + user.uid + "/managedRooms")
-    const sampleImage = "/assets/img/chat.png";
+    //States
     const [notification, setNotification] = useState("");
     const [roomID, setRoomID] = useState("");
     const [image, setImage] = useState(sampleImage)
+    //Functions, other hooks and variables
     const isSample = image === sampleImage;
     const addRoom = async () => {
         const name = document.getElementById(NAME).value;
@@ -25,6 +28,7 @@ export default function AddChat(p) {
                     game: game,
                     description: description,
                     managers: { [user.uid]: user.uid },
+                    owners: { [user.uid]: user.uid }
                 });
                 const key = r.key
                 userRef.child(key).set(key);

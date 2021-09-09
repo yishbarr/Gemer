@@ -18,7 +18,9 @@ import "./Landing.css";
 import Profile from "./settings/Profile";
 import SecurityComponent from "./settings/security/Security";
 export default function Landing(p) {
+    //Store
     const [state, dispatch] = useContext(Context);
+    //Constants
     const PATH = "/app";
     const PROFILE_PATH = PATH + "/profile";
     const SECURITY_PATH = PATH + "/security";
@@ -27,6 +29,7 @@ export default function Landing(p) {
     const ROOM_PATH = PATH + "/room/:id";
     const ROOM_SETTINGS_PATH = PATH + "/roomSettings/:id"
     const EXIT_PATH = PATH + "/exit";
+    //Functions, hooks and data.
     const iconStyle = { color: Colours.white, fontSize: 35 }
     const pages = [
         {

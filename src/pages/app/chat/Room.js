@@ -9,10 +9,12 @@ import Colours from "../../../constants/Colours";
 import { Context } from "../../../context/Store";
 function Room(p) {
     const roomID = useParams().id;
+    //Database
     const database = firebase.database();
     const user = firebase.auth().currentUser;
     const roomRef = database.ref("rooms/" + roomID);
     const usersRef = database.ref("users")
+    //States
     const [roomData, setRoomData] = useState({
         name: "Loading",
         messages: ""
@@ -23,6 +25,7 @@ function Room(p) {
     const [settingsButtonColour, setSettingsButtonColour] = useState(Colours.white)
     const chatbox = useRef(null);
     const [, dispatch] = useContext(Context);
+    //Functions, other hooks and variables.
     const getMessages = async d => {
         console.log("gggg");
         setRoomData({
