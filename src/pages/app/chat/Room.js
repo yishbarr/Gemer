@@ -2,6 +2,7 @@ import { TextareaAutosize } from "@material-ui/core";
 import { SettingsOutlined } from "@material-ui/icons";
 import firebase from "firebase";
 import React, { memo, useContext, useEffect, useRef, useState } from "react";
+import { Modal } from "react-bootstrap";
 import { Link, Redirect, useParams } from "react-router-dom";
 import { ButtonToolTip } from "../../../components/Tooltips";
 import { fieldsClass } from "../../../constants/Classes";
@@ -23,6 +24,7 @@ function Room(p) {
     const [ready, setReady] = useState(false);
     const [validRoom, setValidRoom] = useState(true);
     const [settingsButtonColour, setSettingsButtonColour] = useState(Colours.white)
+    const [profile, setProfile] = useState({ show: false })
     const chatbox = useRef(null);
     const [, dispatch] = useContext(Context);
     //Functions, other hooks and variables.
@@ -119,11 +121,27 @@ function Room(p) {
                 {messageArr.map((m, k) =>
                     <div key={k}>
                         <p style={{ fontSize: 18, whiteSpace: "pre-line" }}>
-                            <Link style={{ fontWeight: "bolder" }}>{usersObj[m.userID] != null ? usersObj[m.userID].nickname : "Deleted User"}</Link>: {m.content.split(" ").map((t, k) => t.match(/[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)/) ? <span key={k}><a href={"https://" + t}>{t}</a> </span> : t + " ")}
+                            <Link onClick={() => setProfile({
+                                show: true,
+                                name: usersObj[m.userID].nickname,
+                                id: m.userID,
+                                photo: ""
+                            })} style={{ fontWeight: "bolder" }}>{usersObj[m.userID] != null ? usersObj[m.userID].nickname : "Deleted User"}</Link>: {m.content.split(" ").map((t, k) => t.match(/[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)/) ? <span key={k}><a href={"https://" + t}>{t}</a> </span> : t + " ")}
                         </p>
                     </div>)}
             </div>
             <TextareaAutosize style={{ marginLeft: "3%", width: "50%", resize: "none" }} type="text" onKeyDown={sendMessage} className={fieldsClass + " form-control"} placeholder="Type your message here." wrap="hard" />
+            <Modal show={profile.show} onHide={() => setProfile({ ...profile, show: false })} >
+                <Modal.Header closeButton>
+                    <Modal.Title>{profile.name}</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <p>{profile.id}</p>
+                    <p>{profile.photo}</p>
+                </Modal.Body>
+                <Modal.Footer>
+                </Modal.Footer>
+            </Modal>
         </div >
     )
 }

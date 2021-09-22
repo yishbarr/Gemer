@@ -88,6 +88,13 @@ export default function RoomManager(p) {
     if (deleted)
         return <Redirect to="/app/myRooms" />
     console.log(owners);
+    const inOwners = key => {
+        for (const owner of owners) {
+            if (owner.key === key)
+                return true
+        }
+        return false;
+    }
     return (
         <Container>
             <h1>{room} Settings</h1>
@@ -135,7 +142,7 @@ export default function RoomManager(p) {
                     {managers.map(m => <tr>
                         <td>{m.name}</td>
                         <td>{m.key}</td>
-                        {!owners.includes(m) ? <td><Button variant="danger" onClick={() => managerRef.child(m.key).remove()}>Remove Manager</Button></td> : <td />}
+                        {!inOwners(m.key) ? <td><Button variant="danger" onClick={() => managerRef.child(m.key).remove()}>Remove Manager</Button></td> : <td />}
                     </tr>)}
                 </tbody>
             </Table>
