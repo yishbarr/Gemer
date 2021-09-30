@@ -137,11 +137,11 @@ function Room(p) {
                     <Modal.Title>{profile.nickname}</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
-                    <img src={profile.usesPhoto ? profile.profilePhoto : "/assets/img/profile_sample.png"} style={{ borderColor: Colours.white, borderRadius: 30, borderWidth: 3, borderStyle: "solid", backgroundColor: Colours.black }}></img>
+                    <img src={profile.usesPhoto ? profile.profilePhoto : "/assets/img/profile_sample.png"} style={{ borderColor: Colours.white, borderRadius: 30, borderWidth: 3, borderStyle: "solid", backgroundColor: Colours.black }} alt="Profile"/>
                     <br />
                     <p>User ID: {profile.id}</p>
                     {profile.favGames.length > 0 ? <p>Favourite Games: {profile.favGames}</p> : ""}
-                    {profile.steamProfile.length > 0 ? <a target="_blank" href={"https://steamcommunity.com/" + profile.steamProfile}>Steam Profile</a> : ""}
+                    {profile.steamProfile.length > 0 ? <a target="_blank" rel="noreferrer" href={"https://steamcommunity.com/" + profile.steamProfile}>Steam Profile</a> : ""}
                 </Modal.Body>
                 <Modal.Footer>
                 </Modal.Footer>
