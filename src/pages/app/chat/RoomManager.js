@@ -1,6 +1,6 @@
 import firebase from "firebase";
 import { useContext, useEffect, useRef, useState } from "react";
-import { Button, Container, Form, Modal, Alert, Table } from "react-bootstrap";
+import { Alert, Button, Container, Form, Modal, Table } from "react-bootstrap";
 import { Redirect, useParams } from "react-router-dom";
 import { fieldsClass } from "../../../constants/Classes";
 import { Context } from "../../../context/Store";
@@ -15,8 +15,6 @@ export default function RoomManager(p) {
     const usersRef = database.ref("users");
     //States
     const [room, setRoom] = useState({});
-    const [description, setDescription] = useState();
-    const [game, setGame] = useState();
     const [isValidRoom, setIsValidRoom] = useState(true);
     const [isReady, setIsReady] = useState(false);
     const [showDelete, setShowDelete] = useState(false);
@@ -35,9 +33,7 @@ export default function RoomManager(p) {
         if (!d.exists())
             setIsValidRoom(false);
         else {
-            setRoom(d.child("name").val());
-            setDescription(d.child("description").val());
-            setGame(d.child("game").val());
+            setRoom(d.val());
         }
     })
         .then(() => {
@@ -100,15 +96,15 @@ export default function RoomManager(p) {
             <h1>{room} Settings</h1>
             <Form.Group className="mb-3">
                 <Form.Label>Room name</Form.Label>
-                <Form.Control className={fieldsClass} value={room} onChange={e => setRoom(e.target.value)} disabled={!isOwner.current} />
+                <Form.Control className={fieldsClass} value={room.name} onChange={e => setRoom({ ...room, name: e.target.value })} disabled={!isOwner.current} />
             </Form.Group>
             <Form.Group className="mb-3">
                 <Form.Label>Room description</Form.Label>
-                <Form.Control className={fieldsClass} value={description} onChange={e => setDescription(e.target.value)} disabled={!isOwner.current} />
+                <Form.Control className={fieldsClass} value={room.description} onChange={e => setRoom({ ...room, description: e.target.value })} disabled={!isOwner.current} />
             </Form.Group>
             <Form.Group className="mb-3">
                 <Form.Label>Game</Form.Label>
-                <Form.Control className={fieldsClass} value={game} onChange={e => setGame(e.target.value)} disabled={!isOwner.current} />
+                <Form.Control className={fieldsClass} value={room.game} onChange={e => setRoom({ ...room, game: e.target.value })} disabled={!isOwner.current} />
             </Form.Group>
             {isOwner.current ?
                 <Form.Group className="mb-3">

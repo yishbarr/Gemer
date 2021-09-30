@@ -24,7 +24,7 @@ function Room(p) {
     const [ready, setReady] = useState(false);
     const [validRoom, setValidRoom] = useState(true);
     const [settingsButtonColour, setSettingsButtonColour] = useState(Colours.white)
-    const [profile, setProfile] = useState({ show: false })
+    const [profile, setProfile] = useState({ show: false, steamProfile: "", favGames: "" })
     const chatbox = useRef(null);
     const [, dispatch] = useContext(Context);
     //Functions, other hooks and variables.
@@ -42,7 +42,7 @@ function Room(p) {
         }
         roomRef.child("joinedUsers/" + user.uid).set(user.uid);
         usersRef.child(user.uid + "/joinedRooms/" + roomID).set(roomID);
-        userKeys.forEach(key => usersRef.child(key + "/profile").get()
+        userKeys.forEach(key => usersRef.child(key).get()
             .then(d => setUsersObj(usersObj => { return { ...usersObj, [key]: d.val() } })))
     }
     useEffect(() =>
@@ -106,6 +106,7 @@ function Room(p) {
     const messageArr = [];
     if (roomData.messages != null)
         Object.keys(roomData.messages).forEach(k => messageArr.push(roomData.messages[k]))
+    console.log(profile);
     return (
         <div style={{ marginLeft: p.folded ? "70px" : "13%", transition: ".5s" }}>
             <div style={{ paddingLeft: "3%", backgroundColor: Colours.header, height: 60, borderBottomColor: Colours.white, borderWidth: 3, borderBottomStyle: "solid", display: "flex", justifyContent: "space-between", paddingRight: "5%", alignItems: "center" }}>
@@ -122,22 +123,25 @@ function Room(p) {
                     <div key={k}>
                         <p style={{ fontSize: 18, whiteSpace: "pre-line" }}>
                             <Link onClick={() => setProfile({
+                                ...usersObj[m.userID].profile,
                                 show: true,
-                                name: usersObj[m.userID].nickname,
+                                usesPhoto: usersObj[m.userID].usesPhoto,
                                 id: m.userID,
-                                photo: ""
-                            })} style={{ fontWeight: "bolder" }}>{usersObj[m.userID] != null ? usersObj[m.userID].nickname : "Deleted User"}</Link>: {m.content.split(" ").map((t, k) => t.match(/[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)/) ? <span key={k}><a href={"https://" + t}>{t}</a> </span> : t + " ")}
+                            })} style={{ fontWeight: "bolder" }}>{usersObj[m.userID] != null ? usersObj[m.userID].profile.nickname : "Deleted User"}</Link>: {m.content.split(" ").map((t, k) => t.match(/[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)/) ? <span key={k}><a href={"https://" + t}>{t}</a> </span> : t + " ")}
                         </p>
                     </div>)}
             </div>
             <TextareaAutosize style={{ marginLeft: "3%", width: "50%", resize: "none" }} type="text" onKeyDown={sendMessage} className={fieldsClass + " form-control"} placeholder="Type your message here." wrap="hard" />
             <Modal show={profile.show} onHide={() => setProfile({ ...profile, show: false })} >
                 <Modal.Header closeButton>
-                    <Modal.Title>{profile.name}</Modal.Title>
+                    <Modal.Title>{profile.nickname}</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
-                    <p>{profile.id}</p>
-                    <p>{profile.photo}</p>
+                    <img src={profile.usesPhoto ? profile.profilePhoto : "/assets/img/profile_sample.png"} style={{ borderColor: Colours.white, borderRadius: 30, borderWidth: 3, borderStyle: "solid", backgroundColor: Colours.black }}></img>
+                    <br />
+                    <p>User ID: {profile.id}</p>
+                    {profile.favGames.length > 0 ? <p>Favourite Games: {profile.favGames}</p> : ""}
+                    {profile.steamProfile.length > 0 ? <a target="_blank" href={"https://steamcommunity.com/" + profile.steamProfile}>Steam Profile</a> : ""}
                 </Modal.Body>
                 <Modal.Footer>
                 </Modal.Footer>
