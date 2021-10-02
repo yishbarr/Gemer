@@ -14,7 +14,8 @@ function Room(p) {
     const database = firebase.database();
     const user = firebase.auth().currentUser;
     const roomRef = database.ref("rooms/" + roomID);
-    const usersRef = database.ref("users")
+    const messagesRef = roomRef.child("messages");
+    const usersRef = database.ref("users");
     //States
     const [roomData, setRoomData] = useState({
         name: "Loading",
@@ -89,7 +90,8 @@ function Room(p) {
                         return str.substring(0, 70) + "\n" + breaker(str.substring(70));
                     }
                     strArr.forEach(line => uploadContent += breaker(line));
-                    roomRef.child("messages").push({ content: uploadContent, userID: user.uid });
+                    const date = new Date();
+                    messagesRef.child(date + user.uid).set({ content: uploadContent, userID: user.uid, timestamp: date + "" });
                     messageArr.length = 0;
                     setTimeout(() => {
                         target.value = null;
@@ -99,6 +101,7 @@ function Room(p) {
             }
         }
     }
+    const deleteMessage = key => messagesRef.child(key).remove();
     if (!validRoom)
         return <Redirect to="/app" />
     if (!ready)
@@ -106,7 +109,7 @@ function Room(p) {
     const messageArr = [];
     if (roomData.messages != null)
         Object.keys(roomData.messages).forEach(k => messageArr.push(roomData.messages[k]))
-    console.log(profile);
+    console.log(messageArr);
     return (
         <div style={{ marginLeft: p.folded ? "70px" : "13%", transition: ".5s" }}>
             <div style={{ paddingLeft: "3%", backgroundColor: Colours.header, height: 60, borderBottomColor: Colours.white, borderWidth: 3, borderBottomStyle: "solid", display: "flex", justifyContent: "space-between", paddingRight: "5%", alignItems: "center" }}>
@@ -120,14 +123,16 @@ function Room(p) {
             </div>
             <div style={{ paddingLeft: "7%", overflowX: "auto", height: "80vh" }} ref={chatbox}>
                 {messageArr.map((m, k) =>
-                    <div key={k}>
+                    <div key={k} style={{ flexDirection: "row", display: "flex" }}>
+                        {m.userID === user.uid ? <button style={{ color: Colours.white, background: "none", border: "none", height: 0 }}
+                            onClick={() => deleteMessage(m.timestamp + m.userID)}>X</button> : ""}
                         <p style={{ fontSize: 18, whiteSpace: "pre-line" }}>
-                            <Link onClick={() => setProfile({
+                            <button onClick={() => setProfile({
                                 ...usersObj[m.userID].profile,
                                 show: true,
                                 usesPhoto: usersObj[m.userID].usesPhoto,
                                 id: m.userID,
-                            })} style={{ fontWeight: "bolder" }}>{usersObj[m.userID] != null ? usersObj[m.userID].profile.nickname : "Deleted User"}</Link>: {m.content.split(" ").map((t, k) => t.match(/[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)/) ? <span key={k}><a href={"https://" + t}>{t}</a> </span> : t + " ")}
+                            })} style={{ fontWeight: "bolder", background: "none", border: "none", color: Colours.blue }}>{usersObj[m.userID] != null ? usersObj[m.userID].profile.nickname : "Deleted User"}</button>: {m.content.split(" ").map((t, k) => t.match(/[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)/) ? <span key={k}><a href={"https://" + t}>{t}</a> </span> : t + " ")}
                         </p>
                     </div>)}
             </div>
@@ -137,7 +142,7 @@ function Room(p) {
                     <Modal.Title>{profile.nickname}</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
-                    <img src={profile.usesPhoto ? profile.profilePhoto : "/assets/img/profile_sample.png"} style={{ borderColor: Colours.white, borderRadius: 30, borderWidth: 3, borderStyle: "solid", backgroundColor: Colours.black }} alt="Profile"/>
+                    <img src={profile.usesPhoto ? profile.profilePhoto : "/assets/img/profile_sample.png"} style={{ borderColor: Colours.white, borderRadius: 30, borderWidth: 3, borderStyle: "solid", backgroundColor: Colours.black, width: 250 }} alt="Profile" />
                     <br />
                     <p>User ID: {profile.id}</p>
                     {profile.favGames.length > 0 ? <p>Favourite Games: {profile.favGames}</p> : ""}

@@ -93,7 +93,7 @@ export default function RoomManager(p) {
     }
     return (
         <Container>
-            <h1>{room} Settings</h1>
+            <h1>{room.name} Settings</h1>
             <Form.Group className="mb-3">
                 <Form.Label>Room name</Form.Label>
                 <Form.Control className={fieldsClass} value={room.name} onChange={e => setRoom({ ...room, name: e.target.value })} disabled={!isOwner.current} />
