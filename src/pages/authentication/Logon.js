@@ -35,7 +35,7 @@ export default function Logon(p) {
     const connectionMessage = "Please check your connection.";
     //Functions
     const logon = async (email, password) => {
-        auth.signInWithEmailAndPassword(email, password)
+        auth.setPersistence(firebase.auth.Auth.Persistence.SESSION).signInWithEmailAndPassword(email, password)
             .catch(e => {
                 const message = "Login failed. ";
                 switch (e.code) {
@@ -68,7 +68,7 @@ export default function Logon(p) {
     const registerWithProvider = async p => {
         const provider = getProvider(p);
         try {
-            user = (await auth.signInWithPopup(provider)).user;
+            user = (await auth.setPersistence(firebase.auth.Auth.Persistence.SESSION).signInWithPopup(provider)).user;
             addUserToDataBase(splitFromTopDomain(user.providerData[0].providerId), user.displayName).catch(e => console.log(e))
             return user;
         }

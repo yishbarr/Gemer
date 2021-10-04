@@ -12,6 +12,7 @@ export default function RoomManager(p) {
     const user = firebase.auth().currentUser;
     const roomRef = database.ref("rooms/" + roomID);
     const managerRef = roomRef.child("managers");
+    const joinedUsersRef = roomRef.child("joinedUsers");
     const usersRef = database.ref("users");
     //States
     const [room, setRoom] = useState({});
@@ -21,6 +22,7 @@ export default function RoomManager(p) {
     const [confirm, setConfirm] = useState("");
     const [managers, setManagers] = useState([]);
     const [owners, setOwners] = useState([]);
+    const [users, setUsers] = useState([]);
     const [showManagerNote, setShowManagerNote] = useState("");
     const [deleted, setDeleted] = useState(false);
     const [, dispatch] = useContext(Context)
@@ -37,8 +39,11 @@ export default function RoomManager(p) {
         }
     })
         .then(() => {
-            const isManagerCheck = (managersRes, owner) => {
-                owner ? setOwners([]) : setManagers([])
+            const isManagerCheck = (managersRes, owner, normalUser) => {
+                if (normalUser)
+                    setUsers([]);
+                else
+                    owner ? setOwners([]) : setManagers([])
                 const managerKeys = Object.keys(managersRes);
                 console.log(managerKeys);
                 for (const key of managerKeys) {
@@ -52,12 +57,15 @@ export default function RoomManager(p) {
                         const adder = managers => managers.concat({ name: d.val(), key: manager })
                         if (owner)
                             setOwners(adder)
+                        else if (normalUser)
+                            setUsers(adder)
                         else setManagers(adder)
                     }
                 }))
             }
             managerRef.on("value", d => isManagerCheck(d.val(), false))
             roomRef.child("owners").on("value", d => isManagerCheck(d.val(), true))
+            joinedUsersRef.on("value", d => isManagerCheck(d.val(), false, true))
             dispatch({ type: "SET_MESSAGE_LISTENER", payload: managerRef })
             setIsReady(true);
         })
@@ -113,6 +121,8 @@ export default function RoomManager(p) {
             <Form.Group className="mb-3">
                 <Button variant="danger" disabled={isOwner.current && owners.length === 1} onClick={leaveRoom}>Leave Room</Button>
             </Form.Group>
+            {isOwner.current ? <Button variant="danger" className="mb-3" onClick={() => setShowDelete(true)}>Delete Room</Button> : null}
+            <br />
             <Form.Label>Managers</Form.Label>
             {isOwner.current ?
                 <Form.Group className="mb-3">
@@ -138,11 +148,29 @@ export default function RoomManager(p) {
                     {managers.map(m => <tr>
                         <td>{m.name}</td>
                         <td>{m.key}</td>
-                        {!inOwners(m.key) ? <td><Button variant="danger" onClick={() => managerRef.child(m.key).remove()}>Remove Manager</Button></td> : <td />}
+                        {!inOwners(m.key) ? <td><Button variant="danger" onClick={() => managerRef.child(m.key).remove()}>Remove User</Button></td> : <td />}
                     </tr>)}
                 </tbody>
             </Table>
-            {isOwner.current ? <Button variant="danger" onClick={() => setShowDelete(true)} >Delete Room</Button> : null}
+            <Form.Label>
+                All Users
+            </Form.Label>
+            <Table variant="dark">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>User ID</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {users.map(m => <tr>
+                        <td>{m.name}</td>
+                        <td>{m.key}</td>
+                        {!inOwners(m.key) ? <td><Button variant="danger" onClick={() => joinedUsersRef.child(m.key).remove()}>Remove User</Button></td> : <td />}
+                    </tr>)}
+                </tbody>
+            </Table>
             <Modal show={showDelete} onHide={hideDelete} >
                 <Modal.Header closeButton>
                     <Modal.Title>Delete Room</Modal.Title>

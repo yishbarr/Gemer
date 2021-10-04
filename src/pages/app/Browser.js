@@ -1,7 +1,8 @@
 import firebase from "firebase";
 import React, { useEffect, useState } from "react";
-import { Card, Container } from "react-bootstrap";
+import { Card, Container, Form } from "react-bootstrap";
 import { Redirect } from "react-router-dom";
+import { fieldsClass } from "../../constants/Classes";
 import Colours from "../../constants/Colours";
 export default function Browser(p) {
     //Database
@@ -11,6 +12,11 @@ export default function Browser(p) {
     //States
     const [rooms, setRooms] = useState();
     const [userRooms, setUserRooms] = useState();
+    const [roomsState, setRoomsState] = useState({
+        rooms: [],
+        joinedRooms: [],
+        managedRooms: []
+    })
     const [roomSelected, setRoomSelected] = useState("");
     //Functions, other hooks and variables.
     useEffect(() => {
@@ -56,15 +62,29 @@ export default function Browser(p) {
             </Card>
         </button>
     )
+    let roomsArr = [];
+    let joinedRooms = [];
+    let managedRooms = [];
     const extractRooms = roomKeys => Object.keys(roomKeys).map(key => { return { ...rooms[key], key: key } })
+    const search = word => {
+        word = word.toLowerCase();
+        const filter = r => r.name.toLowerCase().includes(word) || r.description.toLowerCase().includes(word) || r.game.toLowerCase().includes(word)
+        setRoomsState({
+            rooms: roomsArr.filter(filter),
+            joinedRooms: joinedRooms.filter(filter),
+            managedRooms: managedRooms.filter(filter)
+        })
+    }
+    const initialise = (roomsState, rooms) => roomsState.length > 0 ? roomsState : rooms;
+    const searchBar = <Form.Control className={"mb-3 " + fieldsClass} onChange={e => search(e.target.value)} placeholder="Search room by name, game or description." />
     if (window.location.pathname.startsWith("/app/myRooms")) {
-        let joinedRooms = [];
-        let managedRooms = [];
         if (userRooms != null) {
-            if (userRooms.joined != null)
+            if (userRooms.joined != null) {
                 joinedRooms = extractRooms(userRooms.joined)
-            if (userRooms.managed != null)
-                managedRooms = extractRooms(userRooms.managed)
+            }
+            if (userRooms.managed != null) {
+                managedRooms = extractRooms(userRooms.managed);
+            }
         }
         if (managedRooms.length === 0 && joinedRooms.length === 0)
             return noRoomsComponent;
@@ -80,23 +100,25 @@ export default function Browser(p) {
             <Container>
                 <h1>Your Rooms</h1>
                 <h2>Managed Rooms</h2>
+                {searchBar}
                 <div className="d-flex flex-wrap align-items-stretch">
-                    {roomCards(managedRooms)}
+                    {roomCards(initialise(roomsState.managedRooms, managedRooms))}
                 </div>
                 <br />
                 <h2>Other Joined Rooms</h2>
                 <div className="d-flex flex-wrap align-items-stretch">
-                    {roomCards(joinedRooms)}
+                    {roomCards(initialise(roomsState.joinedRooms, joinedRooms))}
                 </div>
             </Container>
         )
     }
-    const roomsArr = extractRooms(rooms);
+    roomsArr = extractRooms(rooms);
     return (
         <Container>
             <h1>Room Browser</h1>
+            {searchBar}
             <div className="d-flex flex-wrap align-items-stretch">
-                {roomCards(roomsArr)}
+                {roomCards(initialise(roomsState.rooms, roomsArr))}
             </div>
         </Container >
     )

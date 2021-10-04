@@ -99,11 +99,13 @@ export default function Landing(p) {
 
     ]
     const containerStyle = { marginLeft: "15%" };
+    const toolbarStyle = { marginLeft: "12.5%" }
     const foldSideBar = () => {
         setComponentState({
             ...componentState,
             container: { ...containerStyle, marginLeft: "80px" },
             sidebar: { width: "70px" },
+            toolbar: { marginLeft: "65px" },
             buttonInnerHtml: <UnfoldMore />,
         })
     }
@@ -112,6 +114,7 @@ export default function Landing(p) {
             ...componentState,
             container: containerStyle,
             sidebar: { width: "13%" },
+            toolbar: toolbarStyle,
             buttonInnerHtml: <UnfoldLess />,
         })
     }
@@ -119,6 +122,7 @@ export default function Landing(p) {
     const [componentState, setComponentState] = useState({
         container: containerStyle,
         sidebar: {},
+        toolbar: toolbarStyle,
         buttonInnerHtml: <UnfoldLess />,
     })
     const [folded, setFolded] = useState(false);
@@ -172,7 +176,6 @@ export default function Landing(p) {
                 <Button variant="info" onClick={() => window.location.reload()}>Reload</Button>
             </Modal.Footer>
         </Modal>
-
     return (
         <div className="Landing">
             <Sidebar style={componentState.sidebar}>
@@ -214,6 +217,9 @@ export default function Landing(p) {
                     )}
                 </List>
             </Sidebar>
+            <div style={{ ...componentState.toolbar, transition: ".5s", paddingLeft: "3%", backgroundColor: Colours.toolbar, height: 60, borderBottomColor: Colours.white, borderWidth: 3, borderBottomStyle: "solid", display: "flex", justifyContent: "space-between", paddingRight: "5%", alignItems: "center" }}>
+                <h1>Welcome, {firebase.auth().currentUser.displayName}</h1>
+            </div>
             <Container style={{ ...componentState.container, transition: ".5s" }} id="container">
                 <Switch>
                     {routes.map((r, k) => <Route path={r.path} component={r.component} key={k} />)}
