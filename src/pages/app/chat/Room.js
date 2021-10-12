@@ -25,7 +25,8 @@ function Room(p) {
     const [ready, setReady] = useState(false);
     const [validRoom, setValidRoom] = useState(true);
     const [settingsButtonColour, setSettingsButtonColour] = useState(Colours.white)
-    const [profile, setProfile] = useState({ show: false, steamProfile: "", favGames: "" })
+    const [profile, setProfile] = useState({ show: false, steamProfile: "", favGames: "", epicProfileName: "" })
+    const [isManager, setIsManager] = useState(false);
     const chatbox = useRef(null);
     const [, dispatch] = useContext(Context);
     //Functions, other hooks and variables.
@@ -34,7 +35,7 @@ function Room(p) {
         setRoomData({
             name: d.child("name").val(),
             messages: d.child("messages").val(),
-            game: d.child("game").val()
+            game: d.child("game").val(),
         })
         const users = await d.child("joinedUsers").val();
         let userKeys = [];
@@ -45,6 +46,13 @@ function Room(p) {
         usersRef.child(user.uid + "/joinedRooms/" + roomID).set(roomID);
         userKeys.forEach(key => usersRef.child(key).get()
             .then(d => setUsersObj(usersObj => { return { ...usersObj, [key]: d.val() } })))
+        const managers = await d.child("managers").val();
+        if (managers != null) {
+            for (const manager of Object.keys(managers)) {
+                if (manager === user.uid)
+                    setIsManager(true);
+            }
+        }
     }
     useEffect(() =>
         roomRef.get()
@@ -124,7 +132,7 @@ function Room(p) {
             <div style={{ paddingLeft: "7%", overflowX: "auto", height: "80vh" }} ref={chatbox}>
                 {messageArr.map((m, k) =>
                     <div key={k} style={{ flexDirection: "row", display: "flex" }}>
-                        {m.userID === user.uid ? <button style={{ color: Colours.white, background: "none", border: "none", height: 0 }}
+                        {m.userID === user.uid || isManager ? <button style={{ color: Colours.white, background: "none", border: "none", height: 0 }}
                             onClick={() => deleteMessage(m.timestamp + m.userID)}>X</button> : ""}
                         <p style={{ fontSize: 18, whiteSpace: "pre-line" }}>
                             <button onClick={() => setProfile({
@@ -147,6 +155,7 @@ function Room(p) {
                     <p>User ID: {profile.id}</p>
                     {profile.favGames.length > 0 ? <p>Favourite Games: {profile.favGames}</p> : ""}
                     {profile.steamProfile.length > 0 ? <a target="_blank" rel="noreferrer" href={"https://steamcommunity.com/" + profile.steamProfile}>Steam Profile</a> : ""}
+                    {profile.epicProfileName.length > 0 ? <p>Epic Profile Name: {profile.epicProfileName}</p>:""}
                 </Modal.Body>
                 <Modal.Footer>
                 </Modal.Footer>

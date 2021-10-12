@@ -18,7 +18,8 @@ export default function Profile(p) {
         nickname: user.displayName,
         favGames: "",
         profilePicture: samplePhoto,
-        steamProfile: ""
+        steamProfile: "",
+        epicProfileName:""
     })
     //Functions, other hooks and variables
     const isSample = profile.profilePicture === samplePhoto;
@@ -88,6 +89,10 @@ export default function Profile(p) {
                 <Form.Group className="mb-3" controlId="favGroup">
                     <Form.Label>Steam Profile URL</Form.Label>
                     <Form.Control onChange={e => setProfile({ ...profile, steamProfile: e.target.value.slice(27) })} className={fieldsClass} type="text" value={"https://steamcommunity.com/" + profile.steamProfile} />
+                </Form.Group>
+                <Form.Group className="mb-3" controlId="favGroup">
+                    <Form.Label>Epic Profile Name</Form.Label>
+                    <Form.Control onChange={e => setProfile({ ...profile, epicProfileName: e.target.value })} className={fieldsClass} type="text" value={profile.epicProfileName} />
                 </Form.Group>
                 <Form.Group className="mb-3">
                     <Form.Label>Profile Photo</Form.Label>
