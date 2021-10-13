@@ -19,7 +19,7 @@ export default function Profile(p) {
         favGames: "",
         profilePicture: samplePhoto,
         steamProfile: "",
-        epicProfileName:""
+        epicProfileName: ""
     })
     //Functions, other hooks and variables
     const isSample = profile.profilePicture === samplePhoto;
@@ -54,7 +54,7 @@ export default function Profile(p) {
             catch (e) {
                 console.log(e);
             }
-            profileRef.set({ nickname: profile.nickname, favGames: profile.favGames, profilePhoto: url, steamProfile: profile.steamProfile })
+            profileRef.set({ nickname: profile.nickname, favGames: profile.favGames, profilePhoto: url, steamProfile: profile.steamProfile, epicProfileName: profile.epicProfileName })
         }
     }
     useEffect(() => {

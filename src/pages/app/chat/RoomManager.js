@@ -148,7 +148,7 @@ export default function RoomManager(p) {
                     {managers.map(m => <tr>
                         <td>{m.name}</td>
                         <td>{m.key}</td>
-                        {!inOwners(m.key) ? <td><Button variant="danger" onClick={() => managerRef.child(m.key).remove()}>Remove User</Button></td> : <td />}
+                        {(!inOwners(m.key) && isOwner.current) || m.key === user.uid ? <td><Button variant="danger" onClick={() => managerRef.child(m.key).remove()}>{m.key === user.uid ? "Quit Management" : "Remove User"}</Button></td> : <td />}
                     </tr>)}
                 </tbody>
             </Table>
@@ -167,7 +167,7 @@ export default function RoomManager(p) {
                     {users.map(m => <tr>
                         <td>{m.name}</td>
                         <td>{m.key}</td>
-                        {!inOwners(m.key) ? <td><Button variant="danger" onClick={() => joinedUsersRef.child(m.key).remove()}>Remove User</Button></td> : <td />}
+                        {!inOwners(m.key) && isManager.current && m.key !== user.uid ? <td><Button variant="danger" onClick={() => joinedUsersRef.child(m.key).remove()}>Remove User</Button></td> : <td />}
                     </tr>)}
                 </tbody>
             </Table>

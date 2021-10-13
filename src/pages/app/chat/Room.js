@@ -117,7 +117,7 @@ function Room(p) {
     const messageArr = [];
     if (roomData.messages != null)
         Object.keys(roomData.messages).forEach(k => messageArr.push(roomData.messages[k]))
-    console.log(messageArr);
+    console.log(profile);
     return (
         <div style={{ marginLeft: p.folded ? "70px" : "13%", transition: ".5s" }}>
             <div style={{ paddingLeft: "3%", backgroundColor: Colours.header, height: 60, borderBottomColor: Colours.white, borderWidth: 3, borderBottomStyle: "solid", display: "flex", justifyContent: "space-between", paddingRight: "5%", alignItems: "center" }}>
@@ -155,7 +155,7 @@ function Room(p) {
                     <p>User ID: {profile.id}</p>
                     {profile.favGames.length > 0 ? <p>Favourite Games: {profile.favGames}</p> : ""}
                     {profile.steamProfile.length > 0 ? <a target="_blank" rel="noreferrer" href={"https://steamcommunity.com/" + profile.steamProfile}>Steam Profile</a> : ""}
-                    {profile.epicProfileName.length > 0 ? <p>Epic Profile Name: {profile.epicProfileName}</p>:""}
+                    {profile.epicProfileName.length > 0 ? <p>Epic Profile Name: {profile.epicProfileName}</p> : ""}
                 </Modal.Body>
                 <Modal.Footer>
                 </Modal.Footer>
