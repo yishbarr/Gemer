@@ -5,6 +5,7 @@ import { Redirect } from "react-router-dom";
 import { fieldsClass } from "../../constants/Classes";
 import Colours from "../../constants/Colours";
 export default function Browser(p) {
+    const INITIAL_ROOM_TYPE = "Managed Rooms"
     //Database
     const user = firebase.auth().currentUser;
     const database = firebase.database();
@@ -18,6 +19,7 @@ export default function Browser(p) {
         managedRooms: []
     })
     const [roomSelected, setRoomSelected] = useState("");
+    const [roomSearchType, setRoomSearchType] = useState(INITIAL_ROOM_TYPE);
     //Functions, other hooks and variables.
     useEffect(() => {
         database.ref("rooms").get().then(d => setRooms(d.val()));
@@ -76,7 +78,7 @@ export default function Browser(p) {
         })
     }
     const initialise = (roomsState, rooms) => roomsState.length > 0 ? roomsState : rooms;
-    const searchBar = <Form.Control className={"mb-3 " + fieldsClass} onChange={e => search(e.target.value)} placeholder="Search room by name, game or description." />
+    const searchBar = <Form.Control id="searchBar" className={"mb-3 " + fieldsClass} onChange={e => search(e.target.value)} placeholder="Search room by name, game or description." />
     if (window.location.pathname.startsWith("/app/myRooms")) {
         if (userRooms != null) {
             if (userRooms.joined != null) {
@@ -96,18 +98,29 @@ export default function Browser(p) {
             userRef.child("joinedRooms").child(key).remove();
             return false;
         })
+        managedRooms = managedRooms.filter(room => {
+            const key = room.key
+            console.log(Object.keys(rooms).includes(key));
+            if (Object.keys(rooms).includes(key))
+                return true;
+            userRef.child("managedRooms").child(key).remove();
+            return false;
+        })
         return (
             <Container>
                 <h1>Your Rooms</h1>
-                <h2>Managed Rooms</h2>
+                <Form.Select size="lg" onChange={e => setRoomSearchType(e.target.value)} className={"mb-3 " + fieldsClass}>
+                    <option>{INITIAL_ROOM_TYPE}</option>
+                    <option>Other Joined Rooms</option>
+                </Form.Select>
                 {searchBar}
                 <div className="d-flex flex-wrap align-items-stretch">
-                    {roomCards(initialise(roomsState.managedRooms, managedRooms))}
-                </div>
-                <br />
-                <h2>Other Joined Rooms</h2>
-                <div className="d-flex flex-wrap align-items-stretch">
-                    {roomCards(initialise(roomsState.joinedRooms, joinedRooms))}
+                    {INITIAL_ROOM_TYPE === roomSearchType
+                        ?
+                        roomCards(initialise(roomsState.managedRooms, managedRooms))
+                        :
+                        roomCards(initialise(roomsState.joinedRooms, joinedRooms))
+                    }
                 </div>
             </Container>
         )

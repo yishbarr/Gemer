@@ -148,7 +148,7 @@ export default function RoomManager(p) {
                     {managers.map(m => <tr>
                         <td>{m.name}</td>
                         <td>{m.key}</td>
-                        {(!inOwners(m.key) && isOwner.current) || m.key === user.uid ? <td><Button variant="danger" onClick={() => managerRef.child(m.key).remove()}>{m.key === user.uid ? "Quit Management" : "Remove User"}</Button></td> : <td />}
+                        {(!inOwners(m.key) && isOwner.current) || m.key === user.uid ? <td><Button disabled={isOwner.current && owners.length === 1 && m.key === user.uid} variant="danger" onClick={() => managerRef.child(m.key).remove()}>{m.key === user.uid ? "Quit Management" : "Remove User"}</Button></td> : <td />}
                     </tr>)}
                 </tbody>
             </Table>
@@ -176,12 +176,12 @@ export default function RoomManager(p) {
                     <Modal.Title>Delete Room</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
-                    <p>Are you sure you want to delete your room? Type <b>{room}</b> to confirm.</p>
+                    <p>Are you sure you want to delete your room? Type <b>{room.name}</b> to confirm.</p>
                     <Form.Control value={confirm} onChange={e => setConfirm(e.target.value)} className={fieldsClass} />
                 </Modal.Body>
                 <Modal.Footer>
                     <Button variant="primary" onClick={hideDelete}>Cancel</Button>
-                    <Button disabled={confirm !== room} variant="danger" onClick={deleteRoom}>Confirm</Button>
+                    <Button disabled={confirm !== room.name} variant="danger" onClick={deleteRoom}>Confirm</Button>
                 </Modal.Footer>
             </Modal>
         </Container>
