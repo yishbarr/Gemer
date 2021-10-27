@@ -17,6 +17,7 @@ export default function Logon(p) {
             value: "github"
         }
     ]
+    const auth = firebase.auth();
     //States
     const [state, dispatch] = useContext(Context);
     const [notification, setNotification] = useState("");
@@ -24,11 +25,11 @@ export default function Logon(p) {
     const [accountOptions, setAccountOptions] = useState([]);
     const [credential, setCredential] = useState();
 
-    const auth = firebase.auth();
     let user;
     //Check if user signed in or is already signed in.
-    auth.onAuthStateChanged(async a => {
-        if (a != null) {
+    auth.onAuthStateChanged(async user => {
+        if (user != null) {
+            addUserToDataBase(splitFromTopDomain(user.providerData[0].providerId), user.displayName, user).catch(e => console.log(e))
             dispatch({ type: "SET_AUTH", payload: true });
         }
     })
@@ -71,7 +72,6 @@ export default function Logon(p) {
         try {
             await auth.setPersistence(firebase.auth.Auth.Persistence.SESSION);
             user = await auth.signInWithPopup(provider).user;
-            addUserToDataBase(splitFromTopDomain(user.providerData[0].providerId), user.displayName).catch(e => console.log(e))
             return user;
         }
         catch (e) {
@@ -87,7 +87,7 @@ export default function Logon(p) {
         }
     };
     const linkWithUser = () => registerWithProvider(splitFromTopDomain(document.getElementById("providerSelector").value)).then(user => user.linkWithCredential(credential)).catch(e => console.log(e));
-    const addUserToDataBase = async (account, nickname) => {
+    const addUserToDataBase = async (account, nickname, user) => {
         const ref = firebase.database().ref(`users/${user.uid}`);
         const profile = ref.child("profile");
         if (!(await ref.get()).exists()) {

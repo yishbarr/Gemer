@@ -103,7 +103,8 @@ function Room(p) {
                     messageArr.length = 0;
                     setTimeout(() => {
                         target.value = null;
-                        chatbox.current.scroll({ top: chatbox.current.scrollHeight, behavior: "smooth" })
+                        if (chatbox.current)
+                            chatbox.current.scroll({ top: chatbox.current.scrollHeight, behavior: "smooth" })
                     }, 1);
                 }
             }
@@ -135,12 +136,12 @@ function Room(p) {
                         {m.userID === user.uid || isManager ? <button style={{ color: Colours.white, background: "none", border: "none", height: 0 }}
                             onClick={() => deleteMessage(m.timestamp + m.userID)}>X</button> : ""}
                         <p style={{ fontSize: 18, whiteSpace: "pre-line" }}>
-                            <button onClick={() => setProfile({
+                            <button onClick={() => usersObj[m.userID] ? setProfile({
                                 ...usersObj[m.userID].profile,
                                 show: true,
                                 usesPhoto: usersObj[m.userID].usesPhoto,
                                 id: m.userID,
-                            })} style={{ fontWeight: "bolder", background: "none", border: "none", color: Colours.blue }}>{usersObj[m.userID] != null ? usersObj[m.userID].profile.nickname : "Deleted User"}</button>: {m.content.split(" ").map((t, k) => t.match(/[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)/) ? <span key={k}><a href={"https://" + t}>{t}</a> </span> : t + " ")}
+                            }) : null} style={{ fontWeight: "bolder", background: "none", border: "none", color: Colours.blue }}>{usersObj[m.userID] != null ? usersObj[m.userID].profile.nickname : "Deleted User"}</button>: {m.content.split(" ").map((t, k) => t.match(/[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)/) ? <span key={k}><a href={"https://" + t}>{t}</a> </span> : t + " ")}
                         </p>
                     </div>)}
             </div>
@@ -153,9 +154,9 @@ function Room(p) {
                     <img src={profile.usesPhoto ? profile.profilePhoto : "/assets/img/profile_sample.png"} style={{ borderColor: Colours.white, borderRadius: 30, borderWidth: 3, borderStyle: "solid", backgroundColor: Colours.black, width: 250 }} alt="Profile" />
                     <br />
                     <p>User ID: {profile.id}</p>
-                    {profile.favGames.length > 0 ? <p>Favourite Games: {profile.favGames}</p> : ""}
-                    {profile.steamProfile.length > 0 ? <a target="_blank" rel="noreferrer" href={"https://steamcommunity.com/" + profile.steamProfile}>Steam Profile</a> : ""}
-                    {profile.epicProfileName.length > 0 ? <p>Epic Profile Name: {profile.epicProfileName}</p> : ""}
+                    {profile.favGames ? <p>Favourite Games: {profile.favGames}</p> : ""}
+                    {profile.steamProfile ? <a target="_blank" rel="noreferrer" href={"https://steamcommunity.com/" + profile.steamProfile}>Steam Profile</a> : ""}
+                    {profile.epicProfileName ? <p>Epic Profile Name: {profile.epicProfileName}</p> : ""}
                 </Modal.Body>
                 <Modal.Footer>
                 </Modal.Footer>
