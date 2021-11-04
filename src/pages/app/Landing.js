@@ -164,7 +164,7 @@ export default function Landing(p) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [windowWidth])
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    useEffect(() => dispatch({ type: "SET_MESSAGE_LISTENER", payload: sidebarUserSetting }), [])
+    useEffect(() => dispatch({ type: "SET_MESSAGE_LISTENER", payload: [sidebarUserSetting] }), [])
     const [offline, setOffline] = useState(false);
     const offlineModal = (show, message) =>
         <Modal show={show} backdrop="static">
@@ -198,7 +198,7 @@ export default function Landing(p) {
                     <div className="navItem" />
                     {pages.map((p, key) => {
                         return (
-                            <Link key={key} to={p.path} style={{ cursor: "default" }} onClick={() => state.messageListener.off("value")}>
+                            <Link key={key} to={p.path} style={{ cursor: "default" }} onClick={() => state.messageListener.forEach(listener => listener.off("value"))}>
                                 <div className="navItem">
                                     <ButtonToolTip title={p.name} arrow placement="right">
                                         <ListItem>

@@ -66,7 +66,7 @@ function Room(p) {
             })
             .then(() => setReady(true))
             .then(() => roomRef.on("value", d => d.exists() ? getMessages(d) : null))
-            .then(() => dispatch({ type: "SET_MESSAGE_LISTENER", payload: roomRef }))
+            .then(() => dispatch({ type: "SET_MESSAGE_LISTENER", payload: [roomRef] }))
             .catch(e => console.log(e))
         // eslint-disable-next-line react-hooks/exhaustive-deps
         , [dispatch])

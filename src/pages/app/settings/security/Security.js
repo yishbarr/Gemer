@@ -14,7 +14,8 @@ export default function Security(p) {
     //Database
     const user = firebase.auth().currentUser;
     const [currentEmail, setCurrentEmail] = useState(user.email);
-    const ref = firebase.database().ref(`users/${user.uid}`);
+    const database = firebase.database();
+    const userRef = database.ref(`users/${user.uid}`);
     //States
     const [state, dispatch] = useContext(Context)
     const [confirm, setConfirm] = useState("");
@@ -26,7 +27,7 @@ export default function Security(p) {
     const changeEmail = () => {
         const email = document.getElementById(EMAIL).value;
         user.updateEmail(email)
-            .then(() => ref.child(`${provider}/email`).set(email))
+            .then(() => userRef.child(`${provider}/email`).set(email))
     }
     const changePassword = () => {
         //Make prompt
@@ -39,18 +40,25 @@ export default function Security(p) {
                 }
             });
     }
-    const deleteAccount = () => {
-        firebase.storage().ref(`profile_pics/${user.uid}`).delete()
-            .catch(e => console.log(e))
-            .finally(()=>ref.child("joinedRooms"))
-            .finally(() => ref.remove().catch(e => console.log(e))
-                .finally(() =>
-                    user.delete()
-                        .then(() => dispatch({ type: "SET_AUTH", payload: false }))
-                        .catch(e => {
-                            if (e.code === RECENT_LOGIN_ERROR)
-                                reauthenticate().then(() => deleteAccount());
-                        })))
+    const deleteAccount = async () => {
+        try {
+            await firebase.storage().ref(`profile_pics/${user.uid}`).delete().catch(e=>console.log(e))
+            await userRef.child("joinedRooms").get().then(rooms => rooms.val())
+                .then(rooms => Object.keys(rooms).forEach(key => {
+                    const roomRef = database.ref("rooms/" + key)
+                    roomRef.child("managers").child(user.uid).remove();
+                    roomRef.child("owners").child(user.uid).remove();
+                    roomRef.child("joinedUsers").child(user.uid).remove();
+                }))
+            await userRef.remove().catch(e => console.log(e))
+            await user.delete();
+            dispatch({ type: "SET_AUTH", payload: false })
+        }
+        catch (e) {
+            console.log(e);
+            if (e.code === RECENT_LOGIN_ERROR)
+                reauthenticate().then(() => deleteAccount());
+        }
     }
     const reauthenticate = async () => {
         if (provider !== "password")

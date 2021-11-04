@@ -6,9 +6,8 @@ const initialState = {
     auth: false,
     appPath: "/app",
     error: null,
-    messageListener: null
+    messageListener: []
 };
-
 const Store = ({ children }) => {
     const [state, dispatch] = useReducer(Reducer, initialState);
     return (

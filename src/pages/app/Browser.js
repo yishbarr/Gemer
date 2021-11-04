@@ -22,7 +22,21 @@ export default function Browser(p) {
     const [roomSearchType, setRoomSearchType] = useState(INITIAL_ROOM_TYPE);
     //Functions, other hooks and variables.
     useEffect(() => {
-        database.ref("rooms").get().then(d => setRooms(d.val()));
+        const roomsRef = database.ref("rooms");
+        roomsRef.get()
+            .then(d => d.val())
+            .then(rooms => {
+                if (rooms) {
+                    Object.keys(rooms)
+                        .forEach(key => {
+                            if (!rooms[key].owners) {
+                                roomsRef.child(key).remove();
+                                delete rooms[key]
+                            }
+                        })
+                    setRooms(rooms)
+                }
+            });
         userRef.get().then(d => setUserRooms({
             joined: d.child("joinedRooms").val(),
             managed: d.child("managedRooms").val()

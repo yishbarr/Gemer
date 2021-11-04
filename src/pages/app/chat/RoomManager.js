@@ -39,34 +39,36 @@ export default function RoomManager(p) {
         }
     })
         .then(() => {
-            const isManagerCheck = (managersRes, owner, normalUser) => {
+            const isManagerCheck = (userRes, owner, normalUser) => {
+                const userKeys = Object.keys(userRes);
+                console.log(userKeys);
                 if (normalUser)
                     setUsers([]);
-                else
+                else {
                     owner ? setOwners([]) : setManagers([])
-                const managerKeys = Object.keys(managersRes);
-                console.log(managerKeys);
-                for (const key of managerKeys) {
-                    if (key === user.uid) {
-                        owner ? isOwner.current = true : isManager.current = true;
-                        break;
+                    for (const key of userKeys) {
+                        if (key === user.uid) {
+                            owner ? isOwner.current = true : isManager.current = true;
+                            break;
+                        }
                     }
                 }
-                managerKeys.forEach(manager => database.ref("users/" + manager + "/profile").child("nickname").get().then(d => {
+                userKeys.forEach(user => database.ref("users/" + user + "/profile").child("nickname").get().then(d => {
                     if (d.exists()) {
-                        const adder = managers => managers.concat({ name: d.val(), key: manager })
-                        if (owner)
-                            setOwners(adder)
-                        else if (normalUser)
+                        const adder = users => users.concat({ name: d.val(), key: user })
+                        if (normalUser)
                             setUsers(adder)
+                        else if (owner)
+                            setOwners(adder)
                         else setManagers(adder)
                     }
                 }))
+
             }
             managerRef.on("value", d => isManagerCheck(d.val(), false))
             roomRef.child("owners").on("value", d => isManagerCheck(d.val(), true))
             joinedUsersRef.on("value", d => isManagerCheck(d.val(), false, true))
-            dispatch({ type: "SET_MESSAGE_LISTENER", payload: managerRef })
+            dispatch({ type: "SET_MESSAGE_LISTENER", payload: [roomRef, managerRef, joinedUsersRef] })
             setIsReady(true);
         })
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -75,10 +77,9 @@ export default function RoomManager(p) {
         return <Redirect to="/app" />
     if (!isReady)
         return <div />
-    const errorMaker = e => console.log(e);
-    const leaveRoom = () => database.ref("users/" + user.uid + "/joinedRooms/" + roomID).remove(errorMaker).then(() => setDeleted(true));
-    const deleteRoom = () => roomRef.remove(errorMaker)
-        .then(() => usersRef.child(user.uid).child("managedRooms").child(roomID).remove(errorMaker))
+    const leaveRoom = () => database.ref("users/" + user.uid + "/joinedRooms/" + roomID).remove().then(() => setDeleted(true));
+    const deleteRoom = () => roomRef.remove()
+        .then(() => usersRef.child(user.uid).child("managedRooms").child(roomID).remove())
         .then(() => firebase.storage().ref("room_images/" + roomID).delete())
         .then(leaveRoom)
     const addManager = () => {
@@ -91,7 +92,6 @@ export default function RoomManager(p) {
     }
     if (deleted)
         return <Redirect to="/app/myRooms" />
-    console.log(owners);
     const inOwners = key => {
         for (const owner of owners) {
             if (owner.key === key)
