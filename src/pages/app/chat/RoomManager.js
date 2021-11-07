@@ -40,6 +40,8 @@ export default function RoomManager(p) {
     })
         .then(() => {
             const isManagerCheck = (userRes, owner, normalUser) => {
+                if (!userRes)
+                    return;
                 const userKeys = Object.keys(userRes);
                 console.log(userKeys);
                 if (normalUser)
@@ -80,7 +82,7 @@ export default function RoomManager(p) {
     const leaveRoom = () => database.ref("users/" + user.uid + "/joinedRooms/" + roomID).remove().then(() => setDeleted(true));
     const deleteRoom = () => roomRef.remove()
         .then(() => usersRef.child(user.uid).child("managedRooms").child(roomID).remove())
-        .then(() => firebase.storage().ref("room_images/" + roomID).delete())
+        .then(() => firebase.storage().ref("room_images/" + roomID).delete().catch(e=>console.log(e)))
         .then(leaveRoom)
     const addManager = () => {
         const manager = document.getElementById("addManagerField").value;
