@@ -36,8 +36,7 @@ export default function Logon(p) {
     const connectionMessage = "Please check your connection.";
     //Functions
     const logon = async (email, password) => {
-        auth.setPersistence(firebase.auth.Auth.Persistence.SESSION)
-            .then(() => auth.signInWithEmailAndPassword(email, password))
+        auth.signInWithEmailAndPassword(email, password)
             .catch(e => {
                 const message = "Login failed. ";
                 switch (e.code) {
@@ -47,8 +46,8 @@ export default function Logon(p) {
                     default: setNotification(message + connectionMessage)
 
                 }
-            })
-    };
+            })            
+        };
     const register = async (email, password) => {
         const nickname = document.getElementById(NICKNAME).value;
         const message = "Registration failed. ";
@@ -70,7 +69,6 @@ export default function Logon(p) {
     const registerWithProvider = async p => {
         const provider = getProvider(p);
         try {
-            await auth.setPersistence(firebase.auth.Auth.Persistence.SESSION);
             user = await auth.signInWithPopup(provider).user;
             return user;
         }

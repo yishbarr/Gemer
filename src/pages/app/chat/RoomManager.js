@@ -1,9 +1,10 @@
 import firebase from "firebase";
 import { useContext, useEffect, useRef, useState } from "react";
-import { Alert, Button, Container, Form, Modal, Table } from "react-bootstrap";
+import { Alert, Button, Container, Form, Modal, Table, Image } from "react-bootstrap";
 import { Redirect, useParams } from "react-router-dom";
 import { fieldsClass } from "../../../constants/Classes";
 import { Context } from "../../../context/Store";
+import Colours from "../../../constants/Colours";
 
 export default function RoomManager(p) {
     const roomID = useParams().id;
@@ -31,19 +32,20 @@ export default function RoomManager(p) {
     const isOwner = useRef(false);
     //Functions and other hooks
     const hideDelete = () => setShowDelete(false);
-    useEffect(() => roomRef.get().then(d => {
-        if (!d.exists())
-            setIsValidRoom(false);
-        else {
-            setRoom(d.val());
-        }
-    })
-        .then(() => {
+    useEffect(() => {
+        const getData = async () => {
+            const data = await roomRef.get();
+            if (!data.exists()) {
+                setIsValidRoom(false);
+                return;
+            }
+            else {
+                setRoom(await data.val());
+            }
             const isManagerCheck = (userRes, owner, normalUser) => {
                 if (!userRes)
                     return;
                 const userKeys = Object.keys(userRes);
-                console.log(userKeys);
                 if (normalUser)
                     setUsers([]);
                 else {
@@ -72,24 +74,37 @@ export default function RoomManager(p) {
             joinedUsersRef.on("value", d => isManagerCheck(d.val(), false, true))
             dispatch({ type: "SET_MESSAGE_LISTENER", payload: [roomRef, managerRef, joinedUsersRef] })
             setIsReady(true);
-        })
+        }
+        getData();
+    }
         // eslint-disable-next-line react-hooks/exhaustive-deps
         , [user.uid])
     if (!isValidRoom)
         return <Redirect to="/app" />
     if (!isReady)
         return <div />
+    const applyChanges = async () => {
+        roomRef.child("name").set(room.name);
+        roomRef.child("description").set(room.description);
+        roomRef.child("game").set(room.game);
+        const ref = firebase.storage().ref("room_images/" + roomID + "/room_image");
+        await ref.put(await (await fetch(room.photo)).blob());
+        const url = await ref.getDownloadURL();
+        console.log(url);
+        roomRef.child("photo").set(url);
+
+    }
     const leaveRoom = () => database.ref("users/" + user.uid + "/joinedRooms/" + roomID).remove().then(() => setDeleted(true));
     const deleteRoom = () => roomRef.remove()
         .then(() => usersRef.child(user.uid).child("managedRooms").child(roomID).remove())
-        .then(() => firebase.storage().ref("room_images/" + roomID).delete().catch(e=>console.log(e)))
+        .then(() => firebase.storage().ref("room_images/" + roomID).delete().catch(e => console.log(e)))
         .then(leaveRoom)
-    const addManager = () => {
-        const manager = document.getElementById("addManagerField").value;
+    const addManager = manager => {
         if (manager.length > 0)
             usersRef.child(manager).get()
                 .then(d => d.exists())
-                .then(exists => exists ? managerRef.child(manager).set(manager) : setShowManagerNote("User ID doesn't exist. Please check you typed the correct ID."));
+                .then(exists => exists ? managerRef.child(manager).set(manager) : setShowManagerNote("User ID doesn't exist. Please check you typed the correct ID."))
+                .then(() => window.location.reload())
         else setShowManagerNote("Please type user ID in the field.")
     }
     if (deleted)
@@ -100,6 +115,27 @@ export default function RoomManager(p) {
                 return true
         }
         return false;
+    }
+    const inManagers = key => {
+        for (const manager of managers) {
+            if (manager.key === key)
+                return true
+        }
+        return false;
+    }
+    const isCurrentUser = key => key === user.uid;
+    const removeManager = key => {
+        managerRef.child(key).remove();
+        window.location.reload();
+    }
+    const removeUser = key => {
+        console.log(key);
+        joinedUsersRef.child(key).remove();
+        removeManager(key);
+    }
+    const banUser = key => {
+        removeUser(key);
+        roomRef.child("bannedUsers").child(key).set(key);
     }
     return (
         <Container>
@@ -116,9 +152,19 @@ export default function RoomManager(p) {
                 <Form.Label>Game</Form.Label>
                 <Form.Control className={fieldsClass} value={room.game} onChange={e => setRoom({ ...room, game: e.target.value })} disabled={!isOwner.current} />
             </Form.Group>
+            <Form.Group className="mb-3">
+                <Form.Label>Thumbnail</Form.Label>
+                <br />
+                <Image src={room.photo} style={{ border: "3px solid", borderColor: Colours.gray, borderRadius: 20, width: "30%" }} alt="Profile" id="profilePhoto" />
+            </Form.Group>
+            {isOwner.current ? <Form.Group className="mb-3">
+                <Form.Label className="btn btn-primary" style={{ width: "15%", minWidth: "75px" }} htmlFor="upload-button">Upload Photo</Form.Label>
+                <input id="upload-button" type="file" accept="image/*" className="btn btn-primary" style={{ display: "none" }}
+                    onChange={e => setRoom({ ...room, photo: URL.createObjectURL(e.target.files[0]) })} />
+            </Form.Group> : ""}
             {isOwner.current ?
                 <Form.Group className="mb-3">
-                    <Button variant="success" >Apply</Button>
+                    <Button variant="success" onClick={applyChanges}>Apply</Button>
                 </Form.Group> : null}
             <Form.Group className="mb-3">
                 <Button variant="danger" disabled={isOwner.current && owners.length === 1} onClick={leaveRoom}>Leave Room</Button>
@@ -130,7 +176,7 @@ export default function RoomManager(p) {
                 <Form.Group className="mb-3">
                     <Form.Label>Add Manager</Form.Label>
                     <Form.Control id="addManagerField" className={fieldsClass + " mb-3"} placeholder="Type in user ID" disabled={!isOwner.current} />
-                    <Button variant="info" onClick={addManager}>Add</Button>
+                    <Button variant="info" onClick={() => addManager(document.getElementById("addManagerField").value)}>Add</Button>
                 </Form.Group> : null}
             <Alert variant="primary" show={showManagerNote.length > 0}>
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" className="bi bi-exclamation-triangle-fill flex-shrink-0 me-2" viewBox="0 0 16 16" role="img" aria-label="Warning:">
@@ -150,7 +196,7 @@ export default function RoomManager(p) {
                     {managers.map(m => <tr>
                         <td>{m.name}</td>
                         <td>{m.key}</td>
-                        {(!inOwners(m.key) && isOwner.current) || m.key === user.uid ? <td><Button disabled={isOwner.current && owners.length === 1 && m.key === user.uid} variant="danger" onClick={() => managerRef.child(m.key).remove()}>{m.key === user.uid ? "Quit Management" : "Remove User"}</Button></td> : <td />}
+                        {(!inOwners(m.key) && isOwner.current) || isCurrentUser(m.key) ? <td><Button disabled={isOwner.current && owners.length === 1 && isCurrentUser(m.key)} variant="danger" onClick={() => removeManager(m.key)}>{isCurrentUser(m.key) ? "Quit Management" : "Remove Manager"}</Button></td> : <td />}
                     </tr>)}
                 </tbody>
             </Table>
@@ -163,13 +209,17 @@ export default function RoomManager(p) {
                         <th>Name</th>
                         <th>User ID</th>
                         <th></th>
+                        <th></th>
+                        <th></th>
                     </tr>
                 </thead>
                 <tbody>
                     {users.map(m => <tr>
                         <td>{m.name}</td>
                         <td>{m.key}</td>
-                        {!inOwners(m.key) && isManager.current && m.key !== user.uid ? <td><Button variant="danger" onClick={() => joinedUsersRef.child(m.key).remove()}>Remove User</Button></td> : <td />}
+                        {!inOwners(m.key) && isManager.current && !isCurrentUser(m.key) ? <td><Button variant="danger" onClick={() => removeUser(m.key)}>Remove User</Button></td> : <td />}
+                        {!inOwners(m.key) && isManager.current && !isCurrentUser(m.key) ? <td><Button variant="danger" onClick={() => banUser(m.key)}>Ban User</Button></td> : <td />}
+                        {!inManagers(m.key) && isOwner.current && !isCurrentUser(m.key) ? <td><Button variant="info" onClick={() => addManager(m.key)}>Add To Managers</Button></td> : <td />}
                     </tr>)}
                 </tbody>
             </Table>

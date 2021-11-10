@@ -31,7 +31,6 @@ function Room(p) {
     const [, dispatch] = useContext(Context);
     //Functions, other hooks and variables.
     const getMessages = async d => {
-        console.log("gggg");
         setRoomData({
             name: d.child("name").val(),
             messages: d.child("messages").val(),
@@ -42,6 +41,17 @@ function Room(p) {
         if (users != null) {
             userKeys = Object.keys(users);
         }
+        /*const bannedUsers = await d.child("bannedUsers").val();
+        let ban;
+        if (bannedUsers)
+            for (const banned of Object.keys(bannedUsers)) {
+                if (banned === user.uid) {
+                    roomRef.child("joinedUsers/" + user.uid).remove();
+                    ban=true;
+                }
+            }
+        if (ban)
+            backToMain();*/
         roomRef.child("joinedUsers/" + user.uid).set(user.uid);
         usersRef.child(user.uid + "/joinedRooms/" + roomID).set(roomID);
         userKeys.forEach(key => usersRef.child(key).get()
@@ -92,7 +102,6 @@ function Room(p) {
                     }
                     const breaker = str => {
                         if (str.length < 70) {
-                            console.log("end");
                             return str + "\n";
                         }
                         return str.substring(0, 70) + "\n" + breaker(str.substring(70));
@@ -111,14 +120,14 @@ function Room(p) {
         }
     }
     const deleteMessage = key => messagesRef.child(key).remove();
+    const backToMain = () => <Redirect to="/app" />
     if (!validRoom)
-        return <Redirect to="/app" />
+        backToMain();
     if (!ready)
         return <div />
     const messageArr = [];
     if (roomData.messages != null)
         Object.keys(roomData.messages).forEach(k => messageArr.push(roomData.messages[k]))
-    console.log(profile);
     return (
         <div style={{ marginLeft: p.folded ? "70px" : "13%", transition: ".5s" }}>
             <div style={{ paddingLeft: "3%", backgroundColor: Colours.header, height: 60, borderBottomColor: Colours.white, borderWidth: 3, borderBottomStyle: "solid", display: "flex", justifyContent: "space-between", paddingRight: "5%", alignItems: "center" }}>
