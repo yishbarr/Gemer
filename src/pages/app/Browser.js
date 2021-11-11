@@ -1,3 +1,4 @@
+import { FormControlLabel, Switch } from "@material-ui/core";
 import firebase from "firebase";
 import React, { useEffect, useState } from "react";
 import { Card, Container, Form } from "react-bootstrap";
@@ -18,6 +19,7 @@ export default function Browser(p) {
         joinedRooms: [],
         managedRooms: []
     })
+    const [filterValues, setFilterValues] = useState([]);
     const [roomSelected, setRoomSelected] = useState("");
     const [roomSearchType, setRoomSearchType] = useState(INITIAL_ROOM_TYPE);
     //Functions, other hooks and variables.
@@ -84,7 +86,21 @@ export default function Browser(p) {
     const extractRooms = roomKeys => Object.keys(roomKeys).map(key => { return { ...rooms[key], key: key } })
     const search = word => {
         word = word.toLowerCase();
-        const filter = r => r.name.toLowerCase().includes(word) || r.description.toLowerCase().includes(word) || r.game.toLowerCase().includes(word)
+        const filter = r => {
+            if (filterValues.includes("name")) {
+                if (r.name.toLowerCase().includes(word))
+                    return true;
+            }
+            if (filterValues.includes("description")) {
+                if (r.description.toLowerCase().includes(word))
+                    return true;
+            }
+            if (filterValues.includes("game")) {
+                if (r.game.toLowerCase().includes(word))
+                    return true;
+            }
+            return false;
+        }
         setRoomsState({
             rooms: roomsArr.filter(filter),
             joinedRooms: joinedRooms.filter(filter),
@@ -92,7 +108,18 @@ export default function Browser(p) {
         })
     }
     const initialise = (roomsState, rooms) => roomsState.length > 0 ? roomsState : rooms;
-    const searchBar = <Form.Control id="searchBar" className={"mb-3 " + fieldsClass} onChange={e => search(e.target.value)} placeholder="Search room by name, game or description." />
+    const searchFilter = async (checked, param) => {
+        checked ? setFilterValues(filterValues => filterValues.concat([param])) : setFilterValues(filterValues => filterValues.filter(f => f !== param))
+    };
+    const searchBar =
+        <Form.Group class="mb-4">
+            <Form.Control id="searchBar" className={"mb-3 " + fieldsClass} onChange={e => search(e.target.value)} placeholder="Search room by name, game or description." />
+            <Form.Label >Filter Search</Form.Label>
+            <br />
+            <FormControlLabel label="Name" control={<Switch onChange={e => searchFilter(e.target.checked, "name")} />} />
+            <FormControlLabel label="Game" control={<Switch onChange={e => searchFilter(e.target.checked, "game")} />} />
+            <FormControlLabel label="Description" control={<Switch onChange={e => searchFilter(e.target.checked, "description")} />} />
+        </Form.Group>
     if (window.location.pathname.startsWith("/app/myRooms")) {
         if (userRooms != null) {
             if (userRooms.joined != null) {

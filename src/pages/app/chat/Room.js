@@ -2,7 +2,7 @@ import { TextareaAutosize } from "@material-ui/core";
 import { SettingsOutlined } from "@material-ui/icons";
 import firebase from "firebase";
 import React, { memo, useContext, useEffect, useRef, useState } from "react";
-import { Modal } from "react-bootstrap";
+import { Button, Modal } from "react-bootstrap";
 import { Link, Redirect, useParams } from "react-router-dom";
 import { ButtonToolTip } from "../../../components/Tooltips";
 import { fieldsClass } from "../../../constants/Classes";
@@ -26,7 +26,9 @@ function Room(p) {
     const [validRoom, setValidRoom] = useState(true);
     const [settingsButtonColour, setSettingsButtonColour] = useState(Colours.white)
     const [profile, setProfile] = useState({ show: false, steamProfile: "", favGames: "", epicProfileName: "" })
+    const [linkWarning, setLinkWarning] = useState({ show: false, link: "" })
     const [isManager, setIsManager] = useState(false);
+    const [isBanned, setIsBanned] = useState(false);
     const chatbox = useRef(null);
     const [, dispatch] = useContext(Context);
     //Functions, other hooks and variables.
@@ -41,17 +43,14 @@ function Room(p) {
         if (users != null) {
             userKeys = Object.keys(users);
         }
-        /*const bannedUsers = await d.child("bannedUsers").val();
-        let ban;
+        const bannedUsers = await d.child("bannedUsers").val();
         if (bannedUsers)
             for (const banned of Object.keys(bannedUsers)) {
                 if (banned === user.uid) {
-                    roomRef.child("joinedUsers/" + user.uid).remove();
-                    ban=true;
+                    setIsBanned(true);
                 }
             }
-        if (ban)
-            backToMain();*/
+
         roomRef.child("joinedUsers/" + user.uid).set(user.uid);
         usersRef.child(user.uid + "/joinedRooms/" + roomID).set(roomID);
         userKeys.forEach(key => usersRef.child(key).get()
@@ -63,6 +62,7 @@ function Room(p) {
                     setIsManager(true);
             }
         }
+
     }
     useEffect(() =>
         roomRef.get()
@@ -120,9 +120,11 @@ function Room(p) {
         }
     }
     const deleteMessage = key => messagesRef.child(key).remove();
-    const backToMain = () => <Redirect to="/app" />
+    const backToMain = <Redirect to="/app" />
     if (!validRoom)
-        backToMain();
+        return backToMain;
+    if (isBanned)
+        return backToMain;
     if (!ready)
         return <div />
     const messageArr = [];
@@ -150,7 +152,7 @@ function Room(p) {
                                 show: true,
                                 usesPhoto: usersObj[m.userID].usesPhoto,
                                 id: m.userID,
-                            }) : null} style={{ fontWeight: "bolder", background: "none", border: "none", color: Colours.blue }}>{usersObj[m.userID] != null ? usersObj[m.userID].profile.nickname : "Deleted User"}</button>: {m.content.split(" ").map((t, k) => t.match(/[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)/) ? <span key={k}><a href={"https://" + t}>{t}</a> </span> : t + " ")}
+                            }) : null} style={{ fontWeight: "bolder", background: "none", border: "none", color: Colours.blue }}>{usersObj[m.userID] != null ? usersObj[m.userID].profile.nickname : "Deleted User"}</button>: {m.content.split(" ").map((t, k) => t.match(/[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)/) ? <span key={k}><button style={{ all: "unset", color: Colours.blue }} onClick={() => setLinkWarning({ show: true, link: "https://" + t })}>{t}</button> </span> : t + " ")}
                         </p>
                     </div>)}
             </div>
@@ -168,6 +170,17 @@ function Room(p) {
                     {profile.epicProfileName ? <p>Epic Profile Name: {profile.epicProfileName}</p> : ""}
                 </Modal.Body>
                 <Modal.Footer>
+                </Modal.Footer>
+            </Modal>
+            <Modal show={linkWarning.show} onHide={() => setLinkWarning({ show: false })} >
+                <Modal.Header closeButton>
+                    <Modal.Title>External Link</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <p>This link leads to an external website not affiliated with this one. Are you sure you want to continue?</p>
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button variant="danger" href={linkWarning.link}>Yes</Button><Button onClick={() => setLinkWarning({ show: false })}>No</Button>
                 </Modal.Footer>
             </Modal>
         </div >

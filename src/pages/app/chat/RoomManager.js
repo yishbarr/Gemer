@@ -134,8 +134,8 @@ export default function RoomManager(p) {
         removeManager(key);
     }
     const banUser = key => {
-        removeUser(key);
         roomRef.child("bannedUsers").child(key).set(key);
+        usersRef.child(key).child("bannedRooms").child(roomID).set(roomID);
     }
     return (
         <Container>
