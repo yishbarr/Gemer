@@ -4,6 +4,7 @@ import firebase from "firebase";
 import React, { memo, useContext, useEffect, useRef, useState } from "react";
 import { Button, Modal } from "react-bootstrap";
 import { Link, Redirect, useParams } from "react-router-dom";
+import MyModal from "../../../components/MyModal";
 import { ButtonToolTip } from "../../../components/Tooltips";
 import { fieldsClass } from "../../../constants/Classes";
 import Colours from "../../../constants/Colours";
@@ -157,32 +158,31 @@ function Room(p) {
                     </div>)}
             </div>
             <TextareaAutosize style={{ marginLeft: "3%", width: "50%", resize: "none" }} type="text" onKeyDown={sendMessage} className={fieldsClass + " form-control"} placeholder="Type your message here." wrap="hard" />
-            <Modal show={profile.show} onHide={() => setProfile({ ...profile, show: false })} >
-                <Modal.Header closeButton>
-                    <Modal.Title>{profile.nickname}</Modal.Title>
-                </Modal.Header>
-                <Modal.Body>
-                    <img src={profile.usesPhoto ? profile.profilePhoto : "/assets/img/profile_sample.png"} style={{ borderColor: Colours.white, borderRadius: 30, borderWidth: 3, borderStyle: "solid", backgroundColor: Colours.black, width: 250 }} alt="Profile" />
-                    <br />
-                    <p>User ID: {profile.id}</p>
-                    {profile.favGames ? <p>Favourite Games: {profile.favGames}</p> : ""}
-                    {profile.steamProfile ? <a target="_blank" rel="noreferrer" href={"https://steamcommunity.com/" + profile.steamProfile}>Steam Profile</a> : ""}
-                    {profile.epicProfileName ? <p>Epic Profile Name: {profile.epicProfileName}</p> : ""}
-                </Modal.Body>
-                <Modal.Footer>
-                </Modal.Footer>
-            </Modal>
-            <Modal show={linkWarning.show} onHide={() => setLinkWarning({ show: false })} >
-                <Modal.Header closeButton>
-                    <Modal.Title>External Link</Modal.Title>
-                </Modal.Header>
-                <Modal.Body>
-                    <p>This link leads to an external website not affiliated with this one. Are you sure you want to continue?</p>
-                </Modal.Body>
-                <Modal.Footer>
-                    <Button variant="danger" href={linkWarning.link}>Yes</Button><Button onClick={() => setLinkWarning({ show: false })}>No</Button>
-                </Modal.Footer>
-            </Modal>
+            <MyModal
+                show={profile.show}
+                onHide={() => setProfile({ ...profile, show: false })}
+                title={profile.nickname}
+                body={
+                    <Modal.Body>
+                        <img src={profile.usesPhoto ? profile.profilePhoto : "/assets/img/profile_sample.png"} style={{ borderColor: Colours.white, borderRadius: 30, borderWidth: 3, borderStyle: "solid", backgroundColor: Colours.black, width: 250 }} alt="Profile" />
+                        <br />
+                        <p>User ID: {profile.id}</p>
+                        {profile.favGames ? <p>Favourite Games: {profile.favGames}</p> : ""}
+                        {profile.steamProfile ? <a target="_blank" rel="noreferrer" href={"https://steamcommunity.com/" + profile.steamProfile}>Steam Profile</a> : ""}
+                        {profile.epicProfileName ? <p>Epic Profile Name: {profile.epicProfileName}</p> : ""}
+                    </Modal.Body>
+                }
+            />
+            <MyModal
+                show={linkWarning.show}
+                onHide={() => setLinkWarning({ show: false })}
+                title={"External Link"}
+                body={<Modal.Body><p>This link leads to an external website not affiliated with this one. Are you sure you want to continue?</p></Modal.Body>}
+                footer={
+                    <Modal.Footer>
+                        <Button variant="danger" href={linkWarning.link}>Yes</Button><Button onClick={() => setLinkWarning({ show: false })}>No</Button>
+                    </Modal.Footer>
+                } />
         </div >
     )
 }

@@ -7,6 +7,9 @@ import { fieldsClass } from "../../constants/Classes";
 import Colours from "../../constants/Colours";
 export default function Browser(p) {
     const INITIAL_ROOM_TYPE = "Managed Rooms"
+    const GAME_FILTER = "Game";
+    const DESCRIPTION_FILTER = "Description";
+    const NAME_FILTER = "Name";
     //Database
     const user = firebase.auth().currentUser;
     const database = firebase.database();
@@ -87,15 +90,15 @@ export default function Browser(p) {
     const search = word => {
         word = word.toLowerCase();
         const filter = r => {
-            if (filterValues.includes("name")) {
+            if (filterValues.includes(NAME_FILTER)) {
                 if (r.name.toLowerCase().includes(word))
                     return true;
             }
-            if (filterValues.includes("description")) {
+            if (filterValues.includes(DESCRIPTION_FILTER)) {
                 if (r.description.toLowerCase().includes(word))
                     return true;
             }
-            if (filterValues.includes("game")) {
+            if (filterValues.includes(GAME_FILTER)) {
                 if (r.game.toLowerCase().includes(word))
                     return true;
             }
@@ -116,9 +119,9 @@ export default function Browser(p) {
             <Form.Control id="searchBar" className={"mb-3 " + fieldsClass} onChange={e => search(e.target.value)} placeholder="Search room by name, game or description." />
             <Form.Label >Filter Search</Form.Label>
             <br />
-            <FormControlLabel label="Name" control={<Switch onChange={e => searchFilter(e.target.checked, "name")} />} />
-            <FormControlLabel label="Game" control={<Switch onChange={e => searchFilter(e.target.checked, "game")} />} />
-            <FormControlLabel label="Description" control={<Switch onChange={e => searchFilter(e.target.checked, "description")} />} />
+            <FormControlLabel label={NAME_FILTER} control={<Switch onChange={e => searchFilter(e.target.checked, NAME_FILTER)} />} />
+            <FormControlLabel label={GAME_FILTER} control={<Switch onChange={e => searchFilter(e.target.checked, GAME_FILTER)} />} />
+            <FormControlLabel label={DESCRIPTION_FILTER} control={<Switch onChange={e => searchFilter(e.target.checked, DESCRIPTION_FILTER)} />} />
         </Form.Group>
     if (window.location.pathname.startsWith("/app/myRooms")) {
         if (userRooms != null) {

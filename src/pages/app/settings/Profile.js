@@ -1,7 +1,7 @@
 import { FormControlLabel, Switch } from "@material-ui/core";
 import firebase from "firebase";
 import React, { useEffect, useState } from "react";
-import { Button, Container, Form, Image } from "react-bootstrap";
+import { Button, Container, Form, Image, Alert } from "react-bootstrap";
 import { fieldsClass } from "../../../constants/Classes";
 import Colours from "../../../constants/Colours";
 export default function Profile(p) {
@@ -21,6 +21,7 @@ export default function Profile(p) {
         steamProfile: "",
         epicProfileName: ""
     })
+    const [notification, setNotification] = useState("");
     //Functions, other hooks and variables
     const isSample = profile.profilePicture === samplePhoto;
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -30,10 +31,13 @@ export default function Profile(p) {
         document.getElementById("upload-button").value = "";
     }
     const tickPhoto = () => {
-        console.log(user.photoURL);
         setProfile({ ...profile, profilePicture: user.photoURL });
     }
     const updateProfile = async () => {
+        if (profile.nickname == null) {
+            setNotification("Please write a nickname.");
+            return;
+        }
         if (ref !== undefined) {
             console.log("update profile");
             let url = user.photoURL;
@@ -54,7 +58,8 @@ export default function Profile(p) {
             catch (e) {
                 console.log(e);
             }
-            profileRef.set({ nickname: profile.nickname, favGames: profile.favGames, profilePhoto: url, steamProfile: profile.steamProfile, epicProfileName: profile.epicProfileName })
+            await profileRef.set({ nickname: profile.nickname, favGames: profile.favGames, profilePhoto: url, steamProfile: profile.steamProfile, epicProfileName: profile.epicProfileName })
+            setNotification("Profile updated successfully.");
         }
     }
     useEffect(() => {
@@ -108,8 +113,16 @@ export default function Profile(p) {
                     <input id="upload-button" type="file" accept="image/*" className="btn btn-primary" style={{ display: "none" }}
                         onChange={e => setProfile({ ...profile, profilePicture: URL.createObjectURL(e.target.files[0]) })} />
                 </Form.Group>
-                <Button onClick={updateProfile} variant="success" style={{ width: "10%", minWidth: "65px" }}>Apply</Button>
+                <Form.Group className="mb-3">
+                    <Button onClick={updateProfile} variant="success" style={{ width: "10%", minWidth: "65px" }}>Apply</Button>
+                </Form.Group>
             </Form>
+            <Alert variant="info" show={notification.length > 0}>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-info-circle-fill flex-shrink-0 me-2" viewBox="0 0 16 16">
+                    <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm.93-9.412-1 4.705c-.07.34.029.533.304.533.194 0 .487-.07.686-.246l-.088.416c-.287.346-.92.598-1.465.598-.703 0-1.002-.422-.808-1.319l.738-3.468c.064-.293.006-.399-.287-.47l-.451-.081.082-.381 2.29-.287zM8 5.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2z" />
+                </svg>
+                {notification}
+            </Alert>
         </Container >
     )
 }

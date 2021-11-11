@@ -29,7 +29,9 @@ export default function Logon(p) {
     //Check if user signed in or is already signed in.
     auth.onAuthStateChanged(async user => {
         if (user != null) {
-            addUserToDataBase(splitFromTopDomain(user.providerData[0].providerId), user.displayName, user).catch(e => console.log(e))
+            const provider = splitFromTopDomain(user.providerData[0].providerId);
+            console.log(user.displayName);
+            await addUserToDataBase(provider, provider === "password" && user.displayName == null ? document.getElementById(NICKNAME).value : user.displayName, user).catch(e => console.log(e))
             dispatch({ type: "SET_AUTH", payload: true });
         }
     })
@@ -46,8 +48,8 @@ export default function Logon(p) {
                     default: setNotification(message + connectionMessage)
 
                 }
-            })            
-        };
+            })
+    };
     const register = async (email, password) => {
         const nickname = document.getElementById(NICKNAME).value;
         const message = "Registration failed. ";
@@ -56,7 +58,6 @@ export default function Logon(p) {
             return;
         }
         auth.createUserWithEmailAndPassword(email, password)
-            .then(user => addUserToDataBase(user.providerData[0].providerId, nickname))
             .catch(e => {
                 switch (e.code) {
                     case 'auth/weak-password': setNotification(message + "Password is too weak."); break;
@@ -90,7 +91,7 @@ export default function Logon(p) {
         const profile = ref.child("profile");
         if (!(await ref.get()).exists()) {
             //check
-            user.updateProfile({ displayName: nickname });
+            await user.updateProfile({ displayName: nickname });
             ref.child(account).set(
                 {
                     email: user.email
@@ -100,7 +101,7 @@ export default function Logon(p) {
                 {
                     nickname: nickname,
                     favGames: "",
-                    profilePhoto: user.photoURL
+                    profilePhoto: user.photoURL ? user.photoURL : "/assets/img/profile_sample.png"
                 }
             )
         }
