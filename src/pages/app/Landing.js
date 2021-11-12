@@ -1,5 +1,5 @@
 import { List, ListItem, ListItemIcon, ListItemText } from "@material-ui/core";
-import { ExitToApp, ForumOutlined, GroupAdd, Home, Person, Security, UnfoldLess, UnfoldMore } from "@material-ui/icons";
+import { Computer, ExitToApp, ForumOutlined, GroupAdd, Home, Person, Security, UnfoldLess, UnfoldMore } from "@material-ui/icons";
 import firebase from "firebase";
 import React, { cloneElement, useContext, useEffect, useState } from "react";
 import { Button, Container, Modal } from "react-bootstrap";
@@ -10,6 +10,7 @@ import Sidebar from "../../components/Sidebar";
 import { ButtonToolTip } from "../../components/Tooltips";
 import Colours from "../../constants/Colours";
 import { Context } from "../../context/Store";
+import Admin from "./admin/Admin";
 import Browser from "./Browser";
 import AddChat from "./chat/AddChat";
 import Room from "./chat/Room";
@@ -28,6 +29,7 @@ export default function Landing(p) {
     const ADD_CHAT_PATH = PATH + "/addChat";
     const ROOM_PATH = PATH + "/room/:id";
     const ROOM_SETTINGS_PATH = PATH + "/roomSettings/:id"
+    const ADMIN_PATH = PATH + "/admin";
     const EXIT_PATH = PATH + "/exit";
     //Functions, hooks and data.
     const iconStyle = { color: Colours.white, fontSize: 35 }
@@ -57,11 +59,16 @@ export default function Landing(p) {
             icon: <Security />,
             path: SECURITY_PATH
         },
+        state.isAdmin ? {
+            name: "Administration",
+            icon: <Computer />,
+            path: ADMIN_PATH
+        } : null,
         {
             name: "Logout",
             icon: <ExitToApp />,
             path: EXIT_PATH
-        }
+        },
     ]
     const routes = [
         {
@@ -91,7 +98,10 @@ export default function Landing(p) {
             path: EXIT_PATH,
             component: Logout
         },
-
+        {
+            path: ADMIN_PATH,
+            component: Admin
+        },
         {
             path: PATH,
             component: Browser
@@ -126,7 +136,8 @@ export default function Landing(p) {
         buttonInnerHtml: <UnfoldLess />,
     })
     const [folded, setFolded] = useState(false);
-    const sidebarUserSetting = firebase.database().ref(`users/${firebase.auth().currentUser.uid}/sidebar`);
+    const userRef = firebase.database().ref(`users/${firebase.auth().currentUser.uid}`);
+    const sidebarUserSetting = userRef.child("sidebar");
     useEffect(() => sidebarUserSetting.get().then(setting => setting.val() ? triggerFold() : null)
         .catch(() => setOffline(true))
         .catch(e => console.log(e))
@@ -164,7 +175,10 @@ export default function Landing(p) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [windowWidth])
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    useEffect(() => dispatch({ type: "SET_MESSAGE_LISTENER", payload: [sidebarUserSetting] }), [])
+    useEffect(() => dispatch({ type: "SET_MESSAGE_LISTENER", payload: [] }), [])
+    //Assign admin
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    useEffect(() => userRef.child("isAdmin").get().then(async d => dispatch({ type: "SET_ADMIN", payload: await d.val() })), []);
     const [offline, setOffline] = useState(false);
     const offlineModal = (show, message) =>
         <Modal show={show} backdrop="static">
@@ -197,7 +211,7 @@ export default function Landing(p) {
                 <List>
                     <div className="navItem" />
                     {pages.map((p, key) => {
-                        return (
+                        return (p ?
                             <Link key={key} to={p.path} style={{ cursor: "default" }} onClick={() => state.messageListener.forEach(listener => listener.off("value"))}>
                                 <div className="navItem">
                                     <ButtonToolTip title={p.name} arrow placement="right">
@@ -212,6 +226,7 @@ export default function Landing(p) {
                                     </ButtonToolTip>
                                 </div>
                             </Link>
+                            : ""
                         )
                     }
                     )}

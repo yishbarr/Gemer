@@ -115,7 +115,7 @@ export default function Browser(p) {
         checked ? setFilterValues(filterValues => filterValues.concat([param])) : setFilterValues(filterValues => filterValues.filter(f => f !== param))
     };
     const searchBar =
-        <Form.Group class="mb-4">
+        <Form.Group className="mb-4">
             <Form.Control id="searchBar" className={"mb-3 " + fieldsClass} onChange={e => search(e.target.value)} placeholder="Search room by name, game or description." />
             <Form.Label >Filter Search</Form.Label>
             <br />

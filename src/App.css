@@ -1,8 +1,3 @@
-.App {
-  background: rgb(27, 40, 56);
-  height: auto;
-  min-height: 100vh;
-}
 label, h3,h2, h1, p{
   color: white;
 }

@@ -5,6 +5,7 @@ import { Redirect, useParams } from "react-router-dom";
 import { fieldsClass } from "../../../constants/Classes";
 import { Context } from "../../../context/Store";
 import Colours from "../../../constants/Colours";
+import { ArrowDropDownOutlined } from "@material-ui/icons";
 
 export default function RoomManager(p) {
     const roomID = useParams().id;
@@ -15,6 +16,7 @@ export default function RoomManager(p) {
     const managerRef = roomRef.child("managers");
     const joinedUsersRef = roomRef.child("joinedUsers");
     const usersRef = database.ref("users");
+    const bannedUsersRef = roomRef.child("bannedUsers");
     //States
     const [room, setRoom] = useState({});
     const [isValidRoom, setIsValidRoom] = useState(true);
@@ -38,17 +40,14 @@ export default function RoomManager(p) {
     const isOwner = useRef(false);
     //Functions and other hooks
     const hideDelete = () => setShowDelete(false);
-    const search = word => {
-        const filter = u => u.name.toLowerCase().includes(word.toLowerCase()) || u.id.toLowerCase().includes(word.toLowerCase())
+    const search = e => {
+        const word = e.target.value;
+        const filter = u => u.name.toLowerCase().includes(word.toLowerCase()) || u.key.toLowerCase().includes(word.toLowerCase());
         const joinedRes = users.filter(filter);
         const bannedRes = bannedUsers.filter(filter);
         const managersRes = managers.filter(filter);
         if (bannedRes.length === 0 && joinedRes.length === 0 && managersRes.length === 0)
-            setSearchRes({
-                joinedUsers: users,
-                bannedUsers: bannedUsers,
-                managers: managers
-            })
+            initSearch();
         else
             setSearchRes({
                 joinedUsers: joinedRes,
@@ -56,6 +55,12 @@ export default function RoomManager(p) {
                 managers: managersRes
             })
     }
+    const initSearch = () =>
+        setSearchRes({
+            joinedUsers: users,
+            bannedUsers: bannedUsers,
+            managers: managers
+        })
     useEffect(() => {
         const getData = async () => {
             const data = await roomRef.get();
@@ -83,19 +88,24 @@ export default function RoomManager(p) {
                         }
                     }
                 }
-                userKeys.forEach(user => database.ref("users/" + user + "/profile").child("nickname").get().then(d => {
-                    if (d.exists()) {
-                        const adder = users => users.concat({ name: d.val(), key: user })
-                        if (normalUser)
-                            setUsers(adder)
-                        else if (bannedUser)
-                            setBannedUsers(adder);
-                        else if (owner)
-                            setOwners(adder)
-                        else setManagers(adder)
-                    }
-                }))
-
+                userKeys.forEach(user => database.ref("users/" + user + "/profile").child("nickname").get()
+                    .then(async d => {
+                        if (d.exists()) {
+                            const name = await d.val();
+                            const adder = users => users.concat({ name: name, key: user });
+                            if (normalUser) {
+                                setUsers(adder);
+                            }
+                            else if (bannedUser) {
+                                setBannedUsers(adder);
+                            }
+                            else if (owner)
+                                setOwners(adder);
+                            else {
+                                setManagers(adder);
+                            }
+                        }
+                    }))
             }
             managerRef.on("value", d => isManagerCheck(d.val(), false))
             roomRef.child("owners").on("value", d => isManagerCheck(d.val(), true))
@@ -103,7 +113,6 @@ export default function RoomManager(p) {
             joinedUsersRef.on("value", d => isManagerCheck(d.val(), false, true))
             dispatch({ type: "SET_MESSAGE_LISTENER", payload: [roomRef, managerRef, joinedUsersRef] })
             setIsReady(true);
-            search("");
         }
         getData();
     }
@@ -120,7 +129,6 @@ export default function RoomManager(p) {
         const ref = firebase.storage().ref("room_images/" + roomID + "/room_image");
         await ref.put(await (await fetch(room.photo)).blob());
         const url = await ref.getDownloadURL();
-        console.log(url);
         roomRef.child("photo").set(url);
 
     }
@@ -133,8 +141,7 @@ export default function RoomManager(p) {
         if (manager.length > 0)
             usersRef.child(manager).get()
                 .then(d => d.exists())
-                .then(exists => exists ? managerRef.child(manager).set(manager) : setShowManagerNote("User ID doesn't exist. Please check you typed the correct ID."))
-                .then(() => window.location.reload())
+                .then(exists => exists ? managerRef.child(manager).set(manager) && window.location.reload() : setShowManagerNote("User ID doesn't exist. Please check you typed the correct ID."))
         else setShowManagerNote("Please type user ID in the field.")
     }
     if (deleted)
@@ -166,15 +173,21 @@ export default function RoomManager(p) {
         window.location.reload();
     }
     const removeUser = key => {
-        console.log(key);
         joinedUsersRef.child(key).remove();
         removeManager(key);
     }
     const banUser = key => {
-        roomRef.child("bannedUsers").child(key).set(key);
+        if (inOwners(key) || (inManagers(key) && !isOwner.current)) {
+            return
+        }
+        bannedUsersRef.child(key).set(key);
+        managerRef.child(key).remove().catch(e => console.log(e))
         usersRef.child(key).child("bannedRooms").child(roomID).set(roomID);
     }
-    console.log(searchRes);
+    const unbanUser = key => {
+        bannedUsersRef.child(key).remove().catch(e => console.log(e));
+        usersRef.child(key).child("bannedRooms").child(roomID).remove().catch(e => console.log(e));
+    }
     return (
         <Container>
             <h1>{room.name} Settings</h1>
@@ -211,9 +224,10 @@ export default function RoomManager(p) {
             <br />
             <Form.Group className="mb-3">
                 <Form.Label>Search Users</Form.Label>
-                <Form.Control className={fieldsClass} placeholder="Type in user" onChange={e => search(e.target.value)} />
+                <Form.Control className={fieldsClass} placeholder="Type in user" onClick={search} onChange={search} />
             </Form.Group>
             <Form.Label>Managers</Form.Label>
+            <ArrowDropDownOutlined />
             {isOwner.current ?
                 <Form.Group className="mb-3">
                     <Form.Label>Add Manager</Form.Label>
@@ -226,7 +240,7 @@ export default function RoomManager(p) {
                 </svg>
                 {showManagerNote}
             </Alert>
-            <Table variant="dark">
+            <Table variant="dark" className="mb-5">
                 <thead>
                     <tr>
                         <th>Name</th>
@@ -235,17 +249,27 @@ export default function RoomManager(p) {
                     </tr>
                 </thead>
                 <tbody>
-                    {searchRes.managers.map(m => <tr>
-                        <td>{m.name}</td>
-                        <td>{m.key}</td>
-                        {(!inOwners(m.key) && isOwner.current) || isCurrentUser(m.key) ? <td><Button disabled={isOwner.current && owners.length === 1 && isCurrentUser(m.key)} variant="danger" onClick={() => removeManager(m.key)}>{isCurrentUser(m.key) ? "Quit Management" : "Remove Manager"}</Button></td> : <td />}
-                    </tr>)}
+                    {searchRes.managers.map((m, i) =>
+                        <tr key={i}>
+                            <td>{m.name}</td>
+                            <td>{m.key}</td>
+                            {(!inOwners(m.key) && isOwner.current) || isCurrentUser(m.key) ? <td><Button disabled={isOwner.current && owners.length === 1 && isCurrentUser(m.key)} variant="danger" onClick={() => removeManager(m.key)}>{isCurrentUser(m.key) ? "Quit Management" : "Remove Manager"}</Button></td> : <td />}
+                        </tr>)}
                 </tbody>
             </Table>
-
-            {isManager.current ? <Form.Label>Banned Users</Form.Label> : ""}
-            {isManager.current ?
-                <Table variant="dark">
+            {isManager.current ? <Form.Group className="mb-3">
+                <Form.Label>Banned Users</Form.Label>
+                <br />
+                <Form.Label>Ban User</Form.Label>
+                <Form.Control id="banUserField" className={fieldsClass + " mb-3"} placeholder="Type in user ID" />
+                <Button variant="danger" onClick={() => banUser(document.getElementById("banUserField").value)}>Add</Button>
+                <Alert variant="primary" show={showManagerNote.length > 0}>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" className="bi bi-exclamation-triangle-fill flex-shrink-0 me-2" viewBox="0 0 16 16" role="img" aria-label="Warning:">
+                        <path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z" />
+                    </svg>
+                    {showManagerNote}
+                </Alert>
+                <Table variant="dark" className="mb-5">
                     <thead>
                         <tr>
                             <th>Name</th>
@@ -254,13 +278,15 @@ export default function RoomManager(p) {
                         </tr>
                     </thead>
                     <tbody>
-                        {searchRes.bannedUsers.map(m => <tr>
-                            <td>{m.name}</td>
-                            <td>{m.key}</td>
-                            <td><Button variant="success">Unban User</Button></td>
-                        </tr>)}
+                        {searchRes.bannedUsers.map((m, i) =>
+                            <tr key={i}>
+                                <td>{m.name}</td>
+                                <td>{m.key}</td>
+                                <td><Button variant="success" onClick={() => unbanUser(m.key)}>Unban User</Button></td>
+                            </tr>)}
                     </tbody>
                 </Table>
+            </Form.Group>
                 : ""}
             <Form.Label>
                 All Users
@@ -276,9 +302,9 @@ export default function RoomManager(p) {
                     </tr>
                 </thead>
                 <tbody>
-                    {searchRes.joinedUsers.map(m => !isBanned(m.key)
+                    {searchRes.joinedUsers.map((m, i) => !isBanned(m.key)
                         ?
-                        <tr>
+                        <tr key={i}>
                             <td>{m.name}</td>
                             <td>{m.key}</td>
                             {!inOwners(m.key) && isManager.current && !isCurrentUser(m.key) ? <td><Button variant="danger" onClick={() => removeUser(m.key)}>Remove User</Button></td> : <td />}
@@ -286,7 +312,7 @@ export default function RoomManager(p) {
                             {!inManagers(m.key) && isOwner.current && !isCurrentUser(m.key) ? <td><Button variant="info" onClick={() => addManager(m.key)}>Add To Managers</Button></td> : <td />}
                         </tr>
                         :
-                        "")
+                        <div key={i} />)
                     }
                 </tbody>
             </Table>

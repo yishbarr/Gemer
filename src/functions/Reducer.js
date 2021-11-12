@@ -15,6 +15,11 @@ const Reducer = (state, action) => {
                 ...state,
                 messageListener: action.payload
             }
+        case "SET_ADMIN":
+            return {
+                ...state,
+                isAdmin: action.payload
+            }
         default:
             return state;
     }
