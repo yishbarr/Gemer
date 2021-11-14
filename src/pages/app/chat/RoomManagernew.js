@@ -26,10 +26,11 @@ export default function RoomManagernew(p) {
     const [users, setUsers] = useState([]);
     const [searchRes, setSearchRes] = useState([])
     const [showManagerNote, setShowManagerNote] = useState("");
+    const [showBannedNote, setShowBannedNote] = useState("");
     const [deleted, setDeleted] = useState(false);
     const [isOwner, setIsOwner] = useState(false);
     const [isManager, setIsManager] = useState(false);
-    const [, dispatch] = useContext(Context)
+    const [state, dispatch] = useContext(Context)
     //References
     //const isManager = useRef(false);
     //const isOwner = useRef(false);
@@ -39,10 +40,7 @@ export default function RoomManagernew(p) {
         const word = e.target.value;
         const filter = u => u.name.toLowerCase().includes(word.toLowerCase()) || u.key.toLowerCase().includes(word.toLowerCase());
         const joinedRes = users.filter(filter);
-        if (joinedRes.length === 0)
-            setSearchRes(users)
-        else
-            setSearchRes(joinedRes)
+        setSearchRes(joinedRes)
     }
     useEffect(() => {
         const getData = async () => {
@@ -63,16 +61,16 @@ export default function RoomManagernew(p) {
                     .then(async d => {
                         if (d.exists()) {
                             if (key === user.uid) {
-                                setIsManager(userRes[key].isManager);
-                                setIsOwner(userRes[key].isOwner);
+                                setIsManager(userRes[key].isManager || state.isAdmin);
+                                setIsOwner(userRes[key].isOwner || state.isAdmin);
                             }
                             const name = await d.val();
                             const adder = users => users.concat({
                                 name: name,
                                 key: key,
-                                isManager: userRes[key].isManager,
-                                isOwner: userRes[key].isOwner,
-                                isBanned: userRes[key].isBanned
+                                isManager: userRes[key].isManager ? true : false,
+                                isOwner: userRes[key].isOwner ? true : false,
+                                isBanned: userRes[key].isBanned ? true : false
                             });
                             setUsers(adder);
                         }
@@ -146,14 +144,25 @@ export default function RoomManagernew(p) {
         removeManager(key);
     }
     const banUser = key => {
-        joinedUsersRef.child(key).child("isBanned").set(true);
-        usersRef.child(key).child("bannedRooms").child(roomID).set(roomID);
-        removeManager(key);
+        if (key.length > 0) {
+            usersRef.child(key).get()
+                .then(d => d.exists())
+                .then(exists => exists
+                    ? (joinedUsersRef.child(key).child("isBanned").set(true)
+                        && usersRef.child(key).child("bannedRooms").child(roomID).set(roomID)
+                        && removeManager(key))
+                    : setShowBannedNote("User ID doesn't exist. Please check you typed the correct ID.")
+                );
+            ;
+            ;
+        }
+        else setShowBannedNote("Please type user ID in the field.")
     }
     const unbanUser = key => {
         joinedUsersRef.child(key).child("isBanned").set(false);
         usersRef.child(key).child("bannedRooms").child(roomID).remove().catch(e => console.log(e));
     }
+    const searchArr = searchRes.length > 0 ? searchRes : users;
     return (
         <Container>
             <h1>{room.name} Settings</h1>
@@ -215,7 +224,7 @@ export default function RoomManagernew(p) {
                     </tr>
                 </thead>
                 <tbody>
-                    {searchRes.map((m, i) =>
+                    {searchArr.map((m, i) =>
                         m.isManager ?
                             <tr key={i}>
                                 <td>{m.name}</td>
@@ -226,16 +235,18 @@ export default function RoomManagernew(p) {
                 </tbody>
             </Table>
             {isManager ? <Form.Group className="mb-3">
-                <Form.Label>Banned Users</Form.Label>
-                <br />
-                <Form.Label>Ban User</Form.Label>
-                <Form.Control id="banUserField" className={fieldsClass + " mb-3"} placeholder="Type in user ID" />
-                <Button variant="danger" onClick={() => banUser(document.getElementById("banUserField").value)}>Add</Button>
-                <Alert variant="primary" show={showManagerNote.length > 0}>
+                <Form.Group className="mb-3">
+                    <Form.Label>Banned Users</Form.Label>
+                    <br />
+                    <Form.Label>Ban User</Form.Label>
+                    <Form.Control id="banUserField" className={fieldsClass + " mb-3"} placeholder="Type in user ID" />
+                    <Button variant="danger" onClick={() => banUser(document.getElementById("banUserField").value)}>Add</Button>
+                </Form.Group>
+                <Alert variant="primary" show={showBannedNote.length > 0}>
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" className="bi bi-exclamation-triangle-fill flex-shrink-0 me-2" viewBox="0 0 16 16" role="img" aria-label="Warning:">
                         <path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z" />
                     </svg>
-                    {showManagerNote}
+                    {showBannedNote}
                 </Alert>
                 <Table variant="dark" className="mb-5">
                     <thead>
@@ -246,7 +257,7 @@ export default function RoomManagernew(p) {
                         </tr>
                     </thead>
                     <tbody>
-                        {searchRes.map((m, i) =>
+                        {searchArr.map((m, i) =>
                             m.isBanned ?
                                 <tr key={i}>
                                     <td>{m.name}</td>
@@ -271,7 +282,7 @@ export default function RoomManagernew(p) {
                     </tr>
                 </thead>
                 <tbody>
-                    {searchRes.map((m, i) => !m.isBanned
+                    {searchArr.map((m, i) => !m.isBanned
                         ?
                         <tr key={i}>
                             <td>{m.name}</td>

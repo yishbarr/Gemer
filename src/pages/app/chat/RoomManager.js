@@ -34,7 +34,7 @@ export default function RoomManager(p) {
     })
     const [showManagerNote, setShowManagerNote] = useState("");
     const [deleted, setDeleted] = useState(false);
-    const [, dispatch] = useContext(Context)
+    const [state, dispatch] = useContext(Context)
     //References
     const isManager = useRef(false);
     const isOwner = useRef(false);
@@ -113,6 +113,10 @@ export default function RoomManager(p) {
             joinedUsersRef.on("value", d => isManagerCheck(d.val(), false, true))
             dispatch({ type: "SET_MESSAGE_LISTENER", payload: [roomRef, managerRef, joinedUsersRef] })
             setIsReady(true);
+        }
+        if (state.isAdmin) {
+            isOwner.current = true;
+            isManager.current = true;
         }
         getData();
     }

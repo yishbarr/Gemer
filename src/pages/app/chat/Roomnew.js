@@ -31,7 +31,7 @@ function Roomnew(p) {
     const [isManager, setIsManager] = useState(false);
     const [isBanned, setIsBanned] = useState(false);
     const chatbox = useRef(null);
-    const [, dispatch] = useContext(Context);
+    const [state, dispatch] = useContext(Context);
     //Functions, other hooks and variables.
     const getMessages = async d => {
         setRoomData({
@@ -54,8 +54,8 @@ function Roomnew(p) {
         */
         const userRef = roomRef.child("joinedUsers/" + user.uid);
         const userObj = await userRef.get()
-        if (!userObj.exists())
-            userRef.set({ id: user.uid });
+        if (!await userObj.exists())
+            await userRef.set({ id: user.uid });
         usersRef.child(user.uid + "/joinedRooms/" + roomID).set(roomID);
         userKeys.forEach(key => usersRef.child(key).get()
             .then(d => setUsersObj(usersObj => { return { ...usersObj, [key]: d.val() } })))
@@ -67,6 +67,8 @@ function Roomnew(p) {
             }
         }*/
         const userData = await userObj.val();
+        if (!userData)
+            return backToMain;
         if (userData.isManager)
             setIsManager(true);
         if (userData.isBanned)
@@ -131,7 +133,7 @@ function Roomnew(p) {
     const backToMain = <Redirect to="/app" />
     if (!validRoom)
         return backToMain;
-    if (isBanned)
+    if (isBanned && !state.isAdmin)
         return backToMain;
     if (!ready)
         return <div />

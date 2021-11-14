@@ -31,7 +31,7 @@ function Room(p) {
     const [isManager, setIsManager] = useState(false);
     const [isBanned, setIsBanned] = useState(false);
     const chatbox = useRef(null);
-    const [, dispatch] = useContext(Context);
+    const [state, dispatch] = useContext(Context);
     //Functions, other hooks and variables.
     const getMessages = async d => {
         setRoomData({
@@ -59,7 +59,7 @@ function Room(p) {
         const managers = await d.child("managers").val();
         if (managers != null) {
             for (const manager of Object.keys(managers)) {
-                if (manager === user.uid)
+                if (manager === user.uid || state.isManager)
                     setIsManager(true);
             }
         }
@@ -124,7 +124,7 @@ function Room(p) {
     const backToMain = <Redirect to="/app" />
     if (!validRoom)
         return backToMain;
-    if (isBanned)
+    if (isBanned && !state.isAdmin)
         return backToMain;
     if (!ready)
         return <div />
