@@ -168,15 +168,15 @@ export default function RoomManagernew(p) {
             <h1>{room.name} Settings</h1>
             <Form.Group className="mb-3">
                 <Form.Label>Room name</Form.Label>
-                <Form.Control className={fieldsClass} value={room.name} onChange={e => setRoom({ ...room, name: e.target.value })} disabled={isOwner} />
+                <Form.Control className={fieldsClass} value={room.name} onChange={e => setRoom({ ...room, name: e.target.value })} disabled={!isOwner} />
             </Form.Group>
             <Form.Group className="mb-3">
                 <Form.Label>Room description</Form.Label>
-                <Form.Control className={fieldsClass} value={room.description} onChange={e => setRoom({ ...room, description: e.target.value })} disabled={isOwner} />
+                <Form.Control className={fieldsClass} value={room.description} onChange={e => setRoom({ ...room, description: e.target.value })} disabled={!isOwner} />
             </Form.Group>
             <Form.Group className="mb-3">
                 <Form.Label>Game</Form.Label>
-                <Form.Control className={fieldsClass} value={room.game} onChange={e => setRoom({ ...room, game: e.target.value })} disabled={isOwner} />
+                <Form.Control className={fieldsClass} value={room.game} onChange={e => setRoom({ ...room, game: e.target.value })} disabled={!isOwner} />
             </Form.Group>
             <Form.Group className="mb-3">
                 <Form.Label>Thumbnail</Form.Label>
