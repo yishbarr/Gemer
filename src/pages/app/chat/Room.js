@@ -173,7 +173,7 @@ function Roomnew(p) {
                                         <button
                                             className="linkButton"
                                             style={{ color: Colours.blue, textDecoration: "underline", textDecorationColor: Colours.blue, background: "none", border: "none" }}
-                                            onClick={() => setLinkWarning({ show: true, link: "https://" + t })}>
+                                            onClick={() => setLinkWarning({ show: true, link: t })}>
                                             {t}
                                         </button>
                                     </span> : t + " ")}
@@ -200,7 +200,7 @@ function Roomnew(p) {
                 show={linkWarning.show}
                 onHide={() => setLinkWarning({ show: false })}
                 title={"External Link"}
-                body={<Modal.Body><p>This link leads to an external website not affiliated with this program.<br /><br/> Are you sure you want to continue?</p></Modal.Body>}
+                body={<Modal.Body><p>This link leads to an external website not affiliated with this program.<br /><br /> Are you sure you want to continue?</p></Modal.Body>}
                 footer={
                     <Modal.Footer>
                         <Button target="_blank" variant="danger" href={linkWarning.link}>Yes</Button><Button onClick={() => setLinkWarning({ show: false })}>No</Button>

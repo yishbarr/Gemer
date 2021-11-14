@@ -78,7 +78,6 @@ export default function RoomManagernew(p) {
                     ))
             }
             joinedUsersRef.on("value", d => isManagerCheck(d.val()))
-            joinedUsersRef.on("child_removed", () => window.location.reload())
             dispatch({ type: "SET_MESSAGE_LISTENER", payload: [joinedUsersRef] })
             setIsReady(true);
         }
@@ -108,7 +107,7 @@ export default function RoomManagernew(p) {
         if (manager.length > 0)
             usersRef.child(manager).get()
                 .then(d => d.exists())
-                .then(exists => exists ? joinedUsersRef.child(manager).child("isManager").set(true) && usersRef.child(manager).child("managedRooms").child(roomID).set(roomID)/*&& window.location.reload()*/ : setShowManagerNote("User ID doesn't exist. Please check you typed the correct ID."))
+                .then(exists => exists ? joinedUsersRef.child(manager).child("isManager").set(true) && usersRef.child(manager).child("managedRooms").child(roomID).set(roomID) && window.location.reload() : setShowManagerNote("User ID doesn't exist. Please check you typed the correct ID."))
         else setShowManagerNote("Please type user ID in the field.")
     }
     if (deleted)
@@ -138,11 +137,12 @@ export default function RoomManagernew(p) {
     const removeManager = key => {
         joinedUsersRef.child(key).child("isManager").set(false);
         usersRef.child(key).child("managedRooms").child(roomID).remove()
-        //window.location.reload();
+        window.location.reload();
     }
     const removeUser = key => {
         removeManager(key);
         joinedUsersRef.child(key).remove();
+        window.location.reload();
     }
     const banUser = key => {
         if (key.length > 0) {
@@ -151,11 +151,10 @@ export default function RoomManagernew(p) {
                 .then(exists => exists
                     ? (joinedUsersRef.child(key).child("isBanned").set(true)
                         && usersRef.child(key).child("bannedRooms").child(roomID).set(roomID)
-                        && removeManager(key))
+                        && removeManager(key)
+                        && window.location.reload())
                     : setShowBannedNote("User ID doesn't exist. Please check you typed the correct ID.")
                 );
-            ;
-            ;
         }
         else setShowBannedNote("Please type user ID in the field.")
     }
