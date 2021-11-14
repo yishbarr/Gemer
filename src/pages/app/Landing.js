@@ -12,12 +12,12 @@ import Colours from "../../constants/Colours";
 import { Context } from "../../context/Store";
 import Admin from "./admin/Admin";
 import Browser from "./Browser";
-import AddChat from "./chat/AddChatnew";
-import Room from "./chat/Roomnew";
-import RoomManager from "./chat/RoomManagernew";
+import AddChat from "./chat/AddChat";
+import Room from "./chat/Room";
+import RoomManager from "./chat/RoomManager";
 import "./Landing.css";
 import Profile from "./settings/Profile";
-import SecurityComponent from "./settings/security/Securitynew";
+import SecurityComponent from "./settings/security/Security";
 export default function Landing(p) {
     //Store
     const [state, dispatch] = useContext(Context);

@@ -7,7 +7,7 @@ import { fieldsClass } from "../../../../constants/Classes";
 import { Context } from "../../../../context/Store";
 import getProvider from "../../../../functions/getProvider";
 import FirebaseExceptions from "../../../../constants/FirebaseExceptions";
-export default function Security(p) {
+export default function Securitynew(p) {
     //Constants
     const EMAIL = "email";
     const PASSWORD = "password";
@@ -69,7 +69,6 @@ export default function Security(p) {
             await userRef.child("joinedRooms").get().then(rooms => rooms.val())
                 .then(rooms => Object.keys(rooms).forEach(key => {
                     const roomRef = database.ref("rooms/" + key)
-                    roomRef.child("managers").child(user.uid).remove();
                     roomRef.child("owners").child(user.uid).remove();
                     roomRef.child("joinedUsers").child(user.uid).remove();
                 })).catch(e => console.log(e))

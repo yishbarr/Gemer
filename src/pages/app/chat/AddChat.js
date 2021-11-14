@@ -4,7 +4,7 @@ import { Alert, Button, Container, Form, Image } from "react-bootstrap";
 import { Redirect } from "react-router-dom";
 import { fieldsClass } from "../../../constants/Classes";
 import Colours from "../../../constants/Colours";
-export default function AddChat(p) {
+export default function AddChatnew(p) {
     const sampleImage = "/assets/img/chat.png";
     //Database
     const database = firebase.database();
@@ -27,8 +27,14 @@ export default function AddChat(p) {
                     name: name,
                     game: game,
                     description: description,
-                    managers: { [user.uid]: user.uid },
-                    owners: { [user.uid]: user.uid }
+                    joinedUsers: {
+                        [user.uid]: {
+                            isManager: true,
+                            isOwner: true,
+                            id: user.uid
+                        }
+                    },
+                    owners: [user.uid]
                 });
                 const key = r.key
                 userRef.child(key).set(key);

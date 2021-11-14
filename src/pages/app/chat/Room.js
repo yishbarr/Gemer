@@ -9,7 +9,7 @@ import { ButtonToolTip } from "../../../components/Tooltips";
 import { fieldsClass } from "../../../constants/Classes";
 import Colours from "../../../constants/Colours";
 import { Context } from "../../../context/Store";
-function Room(p) {
+function Roomnew(p) {
     const roomID = useParams().id;
     //Database
     const database = firebase.database();
@@ -44,26 +44,35 @@ function Room(p) {
         if (users != null) {
             userKeys = Object.keys(users);
         }
-        const bannedUsers = await d.child("bannedUsers").val();
+        /*const bannedUsers = await d.child("bannedUsers").val();
         if (bannedUsers)
             for (const banned of Object.keys(bannedUsers)) {
                 if (banned === user.uid) {
                     setIsBanned(true);
                 }
             }
-
-        roomRef.child("joinedUsers/" + user.uid).set(user.uid);
+        */
+        const userRef = roomRef.child("joinedUsers/" + user.uid);
+        const userObj = await userRef.get()
+        if (!userObj.exists())
+            await userRef.set({ id: user.uid });
         usersRef.child(user.uid + "/joinedRooms/" + roomID).set(roomID);
         userKeys.forEach(key => usersRef.child(key).get()
             .then(d => setUsersObj(usersObj => { return { ...usersObj, [key]: d.val() } })))
-        const managers = await d.child("managers").val();
+        /*const managers = await d.child("managers").val();
         if (managers != null) {
             for (const manager of Object.keys(managers)) {
-                if (manager === user.uid || state.isManager)
+                if (manager === user.uid)
                     setIsManager(true);
             }
-        }
-
+        }*/
+        const userData = await userObj.val();
+        if (!userData)
+            return backToMain;
+        if (userData.isManager)
+            setIsManager(true);
+        if (userData.isBanned)
+            setIsBanned(true);
     }
     useEffect(() =>
         roomRef.get()
@@ -186,4 +195,4 @@ function Room(p) {
         </div >
     )
 }
-export default memo(Room);
+export default memo(Roomnew);
