@@ -3,6 +3,7 @@ import React, { useContext, useState } from "react";
 import { Alert, Button, Col, Container, Form, Modal, Row } from "react-bootstrap";
 import { Link, Redirect, Route, Switch } from "react-router-dom";
 import { fieldsClass } from "../../constants/Classes";
+import FirebaseExceptions from "../../constants/FirebaseExceptions";
 import { Context } from "../../context/Store";
 import getProvider from "../../functions/getProvider";
 export default function Logon(p) {
@@ -42,8 +43,8 @@ export default function Logon(p) {
             .catch(e => {
                 const message = "Login failed. ";
                 switch (e.code) {
-                    case 'auth/wrong-password': setNotification(message + "Please check your password."); break;
-                    case 'auth/invalid-email':
+                    case FirebaseExceptions.wrongPassword: setNotification(message + "Please check your password."); break;
+                    case FirebaseExceptions.invalidEmail:
                     case 'auth/user-not-found': setNotification(message + "User doesn't exist."); break;
                     default: setNotification(message + connectionMessage)
 
@@ -60,8 +61,8 @@ export default function Logon(p) {
         auth.createUserWithEmailAndPassword(email, password)
             .catch(e => {
                 switch (e.code) {
-                    case 'auth/weak-password': setNotification(message + "Password is too weak."); break;
-                    case 'auth/invalid-email': setNotification(message + "Email is invalid."); break;
+                    case FirebaseExceptions.weakPassword: setNotification(message + "Password is too weak."); break;
+                    case FirebaseExceptions.invalidEmail: setNotification(message + "Email is invalid."); break;
                     case 'auth/email-already-in-use': setNotification(message + "Account with this email already exists. Check if you already registered with a third party account."); break;
                     default: setNotification(message + connectionMessage);
                 }

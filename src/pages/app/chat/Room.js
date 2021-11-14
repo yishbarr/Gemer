@@ -154,15 +154,29 @@ function Roomnew(p) {
             <div style={{ paddingLeft: "7%", overflowX: "auto", height: "80vh" }} ref={chatbox}>
                 {messageArr.map((m, k) =>
                     <div key={k} style={{ flexDirection: "row", display: "flex" }}>
-                        {m.userID === user.uid || isManager ? <button style={{ color: Colours.white, background: "none", border: "none", height: 0 }}
-                            onClick={() => deleteMessage(m.timestamp + m.userID)}>X</button> : ""}
+                        {m.userID === user.uid || isManager
+                            ? <button style={{ color: Colours.white, background: "none", border: "none", height: 0 }}
+                                onClick={() => deleteMessage(m.timestamp + m.userID)}>X</button> : ""}
                         <p style={{ fontSize: 18, whiteSpace: "pre-line" }}>
                             <button onClick={() => usersObj[m.userID] ? setProfile({
                                 ...usersObj[m.userID].profile,
                                 show: true,
                                 usesPhoto: usersObj[m.userID].usesPhoto,
                                 id: m.userID,
-                            }) : null} style={{ fontWeight: "bolder", background: "none", border: "none", color: Colours.blue }}>{usersObj[m.userID] != null ? usersObj[m.userID].profile.nickname : "Deleted User"}</button>: {m.content.split(" ").map((t, k) => t.match(/[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)/) ? <span key={k}><button style={{ all: "unset", color: Colours.blue }} onClick={() => setLinkWarning({ show: true, link: "https://" + t })}>{t}</button> </span> : t + " ")}
+                            }) : null}
+                                style={{ fontWeight: "bolder", background: "none", border: "none", color: Colours.blue }}>
+                                {usersObj[m.userID] != null ? usersObj[m.userID].profile.nickname : "Deleted User"}
+                            </button>
+                            : {m.content.split(" ")
+                                .map((t, k) => t.match(/[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)/)
+                                    ? <span key={k}>
+                                        <button
+                                            className="linkButton"
+                                            style={{ color: Colours.blue, textDecoration: "underline", textDecorationColor: Colours.blue, background: "none", border: "none" }}
+                                            onClick={() => setLinkWarning({ show: true, link: "https://" + t })}>
+                                            {t}
+                                        </button>
+                                    </span> : t + " ")}
                         </p>
                     </div>)}
             </div>
@@ -186,10 +200,10 @@ function Roomnew(p) {
                 show={linkWarning.show}
                 onHide={() => setLinkWarning({ show: false })}
                 title={"External Link"}
-                body={<Modal.Body><p>This link leads to an external website not affiliated with this one. Are you sure you want to continue?</p></Modal.Body>}
+                body={<Modal.Body><p>This link leads to an external website not affiliated with this program.<br /><br/> Are you sure you want to continue?</p></Modal.Body>}
                 footer={
                     <Modal.Footer>
-                        <Button variant="danger" href={linkWarning.link}>Yes</Button><Button onClick={() => setLinkWarning({ show: false })}>No</Button>
+                        <Button target="_blank" variant="danger" href={linkWarning.link}>Yes</Button><Button onClick={() => setLinkWarning({ show: false })}>No</Button>
                     </Modal.Footer>
                 } />
         </div >

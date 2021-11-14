@@ -12,7 +12,6 @@ export default function Securitynew(p) {
     const EMAIL = "email";
     const PASSWORD = "password";
     const CONFIRM_PASSWORD = "confirmPassword";
-    const RECENT_LOGIN_ERROR = 'auth/requires-recent-login';
     const PASSWORD_REAUTH = "passwordReauth";
     const CHECK_PASSWORD_MESSAGE = "Please check your password";
     //Database
@@ -50,7 +49,7 @@ export default function Securitynew(p) {
                     }
                     catch (e) {
                         passwordError(e);
-                        if (e.code === "auth/weak-password")
+                        if (e.code === FirebaseExceptions.weakPassword)
                             setNotification({ variant: "info", text: "Password is too weak." })
                     }
                     finally {
@@ -77,7 +76,7 @@ export default function Securitynew(p) {
             dispatch({ type: "SET_AUTH", payload: false })
         }
         catch (e) {
-            if (e.code === RECENT_LOGIN_ERROR)
+            if (e.code === FirebaseExceptions.recentLoginError)
                 if (provider === "password") {
                     setShowReauthenticationModal({ show: true, func: reauthenticateFromModal })
                 }

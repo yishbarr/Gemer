@@ -11,6 +11,7 @@ import { ButtonToolTip } from "../../components/Tooltips";
 import Colours from "../../constants/Colours";
 import { Context } from "../../context/Store";
 import Admin from "./admin/Admin";
+import Banned from "./Banned";
 import Browser from "./Browser";
 import AddChat from "./chat/AddChat";
 import Room from "./chat/Room";
@@ -107,6 +108,7 @@ export default function Landing(p) {
             component: Browser
         },
 
+
     ]
     const containerStyle = { marginLeft: "15%" };
     const toolbarStyle = { marginLeft: "12.5%" }
@@ -136,7 +138,10 @@ export default function Landing(p) {
         buttonInnerHtml: <UnfoldLess />,
     })
     const [folded, setFolded] = useState(false);
-    const userRef = firebase.database().ref(`users/${firebase.auth().currentUser.uid}`);
+    const user = firebase.auth().currentUser;
+    if (!user)
+        dispatch({ payload: false, type: "SET_AUTH" })
+    const userRef = firebase.database().ref(`users/${user.uid}`);
     const sidebarUserSetting = userRef.child("sidebar");
     useEffect(() => sidebarUserSetting.get().then(setting => setting.val() ? triggerFold() : null)
         .catch(() => setOffline(true))
@@ -179,6 +184,9 @@ export default function Landing(p) {
     //Assign admin
     // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => userRef.child("isAdmin").get().then(async d => dispatch({ type: "SET_ADMIN", payload: await d.val() })), []);
+    //Check if user is banned
+    const [restriction, setRestriction] = useState("None");
+    useEffect(() => userRef.child("restriction").get().then(d => d.exists() ? d.val() : "None").then(restriction => setRestriction(restriction)))
     const [offline, setOffline] = useState(false);
     const offlineModal = (show, message) =>
         <Modal show={show} backdrop="static">
@@ -190,6 +198,7 @@ export default function Landing(p) {
                 <Button variant="info" onClick={() => window.location.reload()}>Reload</Button>
             </Modal.Footer>
         </Modal>
+    const routeMaker = (r, k) => <Route path={r.path} component={r.component} key={k} />
     return (
         <div className="Landing">
             <Sidebar style={componentState.sidebar}>
@@ -237,7 +246,7 @@ export default function Landing(p) {
             </div>
             <Container style={{ ...componentState.container, transition: ".5s" }} id="container">
                 <Switch>
-                    {routes.map((r, k) => <Route path={r.path} component={r.component} key={k} />)}
+                    {restriction !== "Total" ? routes.map(routeMaker) : [{ path: EXIT_PATH, component: Logout }, { path: PATH, component: Banned }].map(routeMaker)}
                 </Switch>
             </Container>
             <Route path={ROOM_PATH}>

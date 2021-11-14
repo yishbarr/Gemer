@@ -34,7 +34,7 @@ export default function AddChatnew(p) {
                             id: user.uid
                         }
                     },
-                    owners: [user.uid]
+                    owners: { [user.uid]: user.uid }
                 });
                 const key = r.key
                 userRef.child(key).set(key);

@@ -22,8 +22,15 @@ export default function Browser(p) {
         joinedRooms: [],
         managedRooms: []
     })
-    const [filterValues, setFilterValues] = useState([]);
+    const INIT_FILTERS = [NAME_FILTER, DESCRIPTION_FILTER, GAME_FILTER]
+    const [filterValues, setFilterValues] = useState(INIT_FILTERS);
     const [roomSelected, setRoomSelected] = useState("");
+    const INIT_CHECK_STATE = {
+        [NAME_FILTER]: true,
+        [DESCRIPTION_FILTER]: true,
+        [GAME_FILTER]: true
+    }
+    const [checks, setChecks] = useState(INIT_CHECK_STATE)
     const [roomSearchType, setRoomSearchType] = useState(INITIAL_ROOM_TYPE);
     //Functions, other hooks and variables.
     useEffect(() => {
@@ -88,6 +95,7 @@ export default function Browser(p) {
     let managedRooms = [];
     const extractRooms = roomKeys => Object.keys(roomKeys).map(key => { return { ...rooms[key], key: key } })
     const search = word => {
+        console.log(filterValues);
         word = word.toLowerCase();
         const filter = r => {
             if (filterValues.includes(NAME_FILTER)) {
@@ -112,17 +120,28 @@ export default function Browser(p) {
     }
     const initialise = (roomsState, rooms) => roomsState.length > 0 ? roomsState : rooms;
     const searchFilter = async (checked, param) => {
-        checked ? setFilterValues(filterValues => filterValues.concat([param])) : setFilterValues(filterValues => filterValues.filter(f => f !== param))
+        if (checked) {
+            setChecks(checks => { return { ...checks, [param]: true } });
+            setFilterValues(filterValues => filterValues.concat([param]));
+        }
+        else {
+            setChecks(checks => { return { ...checks, [param]: false } });
+            setFilterValues(filterValues => filterValues.filter(f => f !== param));
+        }
     };
     const searchBar =
         <Form.Group className="mb-4">
             <Form.Control id="searchBar" className={"mb-3 " + fieldsClass} onChange={e => search(e.target.value)} placeholder="Search room by name, game or description." />
             <Form.Label >Filter Search</Form.Label>
             <br />
-            <FormControlLabel label={NAME_FILTER} control={<Switch onChange={e => searchFilter(e.target.checked, NAME_FILTER)} />} />
-            <FormControlLabel label={GAME_FILTER} control={<Switch onChange={e => searchFilter(e.target.checked, GAME_FILTER)} />} />
-            <FormControlLabel label={DESCRIPTION_FILTER} control={<Switch onChange={e => searchFilter(e.target.checked, DESCRIPTION_FILTER)} />} />
+            <FormControlLabel checked={checks.Name} label={NAME_FILTER} control={<Switch onChange={e => searchFilter(e.target.checked, NAME_FILTER)} />} />
+            <FormControlLabel checked={checks.Game} label={GAME_FILTER} control={<Switch color="primary" onChange={e => searchFilter(e.target.checked, GAME_FILTER)} />} />
+            <FormControlLabel checked={checks.Description} label={DESCRIPTION_FILTER} control={<Switch onChange={e => searchFilter(e.target.checked, DESCRIPTION_FILTER)} />} />
         </Form.Group>
+    if (!checks.Description && !checks.Name && !checks.Game) {
+        setFilterValues(INIT_FILTERS)
+        setChecks(INIT_CHECK_STATE)
+    }
     if (window.location.pathname.startsWith("/app/myRooms")) {
         if (userRooms != null) {
             if (userRooms.joined != null) {
