@@ -5,6 +5,7 @@ import { Card, Container, Form } from "react-bootstrap";
 import { Redirect } from "react-router-dom";
 import { fieldsClass } from "../../constants/Classes";
 import Colours from "../../constants/Colours";
+import findTime from "../../functions/findTime";
 export default function Browser(p) {
     const INITIAL_ROOM_TYPE = "Managed Rooms"
     const GAME_FILTER = "Game";
@@ -76,7 +77,7 @@ export default function Browser(p) {
     }
     if (roomSelected.length > 0)
         return <Redirect to={roomSelected} />
-    const roomCards = rooms => rooms.map((r, i) =>
+    const roomCards = rooms => rooms.sort((a, b) => new Date(b.lastActive).getTime() - new Date(a.lastActive).getTime()).map((r, i) =>
         <button onClick={() => setRoomSelected("/app/room/" + r.key)} style={{ all: "unset" }} key={i}>
             <Card style={{ width: "18rem", height: "100%", marginRight: 3, marginBottom: 3, color: Colours.white }} bg={getColour(i)}>
                 <Card.Header>
@@ -84,8 +85,9 @@ export default function Browser(p) {
                 </Card.Header>
                 <Card.Img variant="top" src={r.photo} />
                 <Card.Body >
-                    <Card.Subtitle>{r.game}</Card.Subtitle>
+                    <Card.Subtitle>Game - {r.game}</Card.Subtitle>
                     <Card.Text>{r.description}</Card.Text>
+                    <Card.Text>Last active - {findTime(r.lastActive)}</Card.Text>
                 </Card.Body>
             </Card>
         </button>

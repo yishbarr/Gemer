@@ -9,6 +9,7 @@ import { ButtonToolTip } from "../../../components/Tooltips";
 import { fieldsClass } from "../../../constants/Classes";
 import Colours from "../../../constants/Colours";
 import { Context } from "../../../context/Store";
+import findTime from "../../../functions/findTime";
 function Roomnew(p) {
     const roomID = useParams().id;
     //Database
@@ -33,6 +34,7 @@ function Roomnew(p) {
     const chatbox = useRef(null);
     const [state, dispatch] = useContext(Context);
     //Functions, other hooks and variables.
+    const updateTimeFirebase = () => roomRef.child("lastActive").set(new Date() + "");
     const getMessages = async d => {
         setRoomData({
             name: d.child("name").val(),
@@ -56,6 +58,7 @@ function Roomnew(p) {
         const userObj = await userRef.get()
         if (!userObj.exists())
             await userRef.set({ id: user.uid });
+        updateTimeFirebase()
         usersRef.child(user.uid + "/joinedRooms/" + roomID).set(roomID);
         userKeys.forEach(key => usersRef.child(key).get()
             .then(d => setUsersObj(usersObj => { return { ...usersObj, [key]: d.val() } })))
@@ -118,7 +121,8 @@ function Roomnew(p) {
                     }
                     strArr.forEach(line => uploadContent += breaker(line));
                     const date = new Date();
-                    messagesRef.child(date + user.uid).set({ content: uploadContent, userID: user.uid, timestamp: date + "" });
+                    messagesRef.push({ content: uploadContent, userID: user.uid, timestamp: date + "" });
+                    updateTimeFirebase();
                     messageArr.length = 0;
                     setTimeout(() => {
                         target.value = null;
@@ -152,7 +156,7 @@ function Roomnew(p) {
                 </ButtonToolTip>
             </div>
             <div style={{ paddingLeft: "7%", overflowX: "auto", height: "80vh" }} ref={chatbox}>
-                {messageArr.map((m, k) =>
+                {messageArr.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()).map((m, k) =>
                     <div key={k} style={{ flexDirection: "row", display: "flex" }}>
                         {m.userID === user.uid || isManager
                             ? <button style={{ color: Colours.white, background: "none", border: "none", height: 0 }}
@@ -177,6 +181,7 @@ function Roomnew(p) {
                                             {t}
                                         </button>
                                     </span> : t + " ")}
+                            - {findTime(m.timestamp)}
                         </p>
                     </div>)}
             </div>
