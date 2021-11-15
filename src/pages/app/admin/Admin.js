@@ -10,6 +10,9 @@ export default function Admin(p) {
     const [users, setUsers] = useState([])
     const [searchRes, setSearchRes] = useState([]);
     const [restrictModal, setRestrictModal] = useState({ key: "", type: "", show: false })
+    const ALL_USERS = "All Users";
+    const ONLY_FULL_USERS = "Only Full Users";
+    const [view, setView] = useState(ALL_USERS);
     const [state, dispatch] = useContext(Context);
     const DEFAULT_OPTION = "Please Choose Option";
     const search = word => {
@@ -47,8 +50,18 @@ export default function Admin(p) {
         <Container>
             <h1>Administration</h1>
             <Form.Group className="mb-3">
-                <Form.Label>Search Users</Form.Label>
-                <Form.Control id="searchBar" className={fieldsClass} onChange={e => search(e.target.value)} onClick={e => search(e.target.value)} />
+                <Form.Group className="mb-3">
+                    <Form.Label>Search Users</Form.Label>
+                    <Form.Control id="searchBar" className={fieldsClass} onChange={e => search(e.target.value)} onClick={e => search(e.target.value)} placeholder="Type in user name or ID" />
+                </Form.Group>
+                <Form.Group className="mb-3">
+                    <Form.Label>View Users</Form.Label>
+                    <Form.Select className={fieldsClass} onChange={e => setView(e.target.value)}>
+                        <option>{ALL_USERS}</option>
+                        <option>{ONLY_FULL_USERS}</option>
+                        <option>Only Restricted Users</option>
+                    </Form.Select>
+                </Form.Group>
                 <Table variant="dark">
                     <thead>
                         <tr>
@@ -59,12 +72,12 @@ export default function Admin(p) {
                         </tr>
                     </thead>
                     <tbody>
-                        {searchArr.map((m, i) =>
+                        {searchArr.filter(m => view === ALL_USERS ? true : view === ONLY_FULL_USERS ? m.restriction === "None" : m.restriction === "Total").map((m, i) =>
                             <tr key={i}>
                                 <td>{m.name}</td>
                                 <td>{m.key}</td>
                                 <td>{m.restriction}</td>
-                                <td><Button disabled={m.isAdmin} onClick={() => setRestrictModal({ key: m.key, show: true, type: DEFAULT_OPTION })}>{m.restriction === "None" ? "Restrict User" : "Change Restriction"}</Button></td>
+                                <td><Button variant={m.restriction === "None" ? "danger" : "primary"} disabled={m.isAdmin} onClick={() => setRestrictModal({ key: m.key, show: true, type: DEFAULT_OPTION })}>{m.restriction === "None" ? "Restrict User" : "Change Restriction"}</Button></td>
                             </tr>
                         )}
                     </tbody>
@@ -89,6 +102,6 @@ export default function Admin(p) {
                 onHide={hideRestrictModal}
                 show={restrictModal.show}
             />
-        </Container>
+        </Container >
     )
 }

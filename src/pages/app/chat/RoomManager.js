@@ -199,7 +199,7 @@ export default function RoomManagernew(p) {
             <br />
             <Form.Group className="mb-3">
                 <Form.Label>Search Users</Form.Label>
-                <Form.Control className={fieldsClass} placeholder="Type in user" onClick={search} onChange={search} />
+                <Form.Control className={fieldsClass} placeholder="Type in user name or ID" onClick={search} onChange={search} />
             </Form.Group>
             <Form.Label>Managers</Form.Label>
             <ArrowDropDownOutlined />
