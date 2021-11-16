@@ -1,5 +1,5 @@
 import { List, ListItem, ListItemIcon, ListItemText } from "@material-ui/core";
-import { Computer, ExitToApp, ForumOutlined, GroupAdd, Home, Person, Security, UnfoldLess, UnfoldMore } from "@material-ui/icons";
+import { Computer, ExitToApp, ForumOutlined, GroupAdd, Home, InfoOutlined, Person, Security, UnfoldLess, UnfoldMore } from "@material-ui/icons";
 import firebase from "firebase";
 import React, { cloneElement, useContext, useEffect, useState } from "react";
 import { Button, Container, Modal } from "react-bootstrap";
@@ -16,6 +16,7 @@ import Browser from "./Browser";
 import AddChat from "./chat/AddChat";
 import Room from "./chat/Room";
 import RoomManager from "./chat/RoomManager";
+import Information from "./Information";
 import "./Landing.css";
 import Profile from "./settings/Profile";
 import SecurityComponent from "./settings/security/Security";
@@ -30,6 +31,7 @@ export default function Landing(p) {
     const ADD_CHAT_PATH = PATH + "/addChat";
     const ROOM_PATH = PATH + "/room/:id";
     const ROOM_SETTINGS_PATH = PATH + "/roomSettings/:id"
+    const INFO_PATH = PATH + "/info";
     const ADMIN_PATH = PATH + "/admin";
     const EXIT_PATH = PATH + "/exit";
     //Functions, hooks and data.
@@ -59,6 +61,11 @@ export default function Landing(p) {
             name: "Security",
             icon: <Security />,
             path: SECURITY_PATH
+        },
+        {
+            name: "Information",
+            icon: <InfoOutlined />,
+            path: INFO_PATH
         },
         state.isAdmin ? {
             name: "Administration",
@@ -104,19 +111,23 @@ export default function Landing(p) {
             component: Admin
         },
         {
+            path: INFO_PATH,
+            component: Information
+        },
+        {
             path: PATH,
             component: Browser
         },
 
 
     ]
-    const containerStyle = { marginLeft: "15%" };
+    const containerStyle = { marginLeft: "18%" };
     const toolbarStyle = { marginLeft: "12.5%" }
     const foldSideBar = () => {
         setComponentState({
             ...componentState,
             container: { ...containerStyle, marginLeft: "80px" },
-            sidebar: { width: "70px" },
+            sidebar: { width: "70px", overflowX: "hidden" },
             toolbar: { marginLeft: "65px" },
             buttonInnerHtml: <UnfoldMore />,
         })
@@ -125,7 +136,7 @@ export default function Landing(p) {
         setComponentState({
             ...componentState,
             container: containerStyle,
-            sidebar: { width: "13%" },
+            sidebar: { width: "13%", overflowX: "auto" },
             toolbar: toolbarStyle,
             buttonInnerHtml: <UnfoldLess />,
         })
@@ -221,7 +232,7 @@ export default function Landing(p) {
                     <div className="navItem" />
                     {pages.map((p, key) => {
                         return (p ?
-                            <Link key={key} to={p.path} style={{ cursor: "default" }} onClick={() => state.messageListener.forEach(listener => listener.off("value"))}>
+                            <Link key={key} to={p.path} style={{ cursor: "default" }} onClick={() => state.messageListener.forEach(listener => listener.off("value") && listener.off("child_changed"))}>
                                 <div className="navItem">
                                     <ButtonToolTip title={p.name} arrow placement="right">
                                         <ListItem>
