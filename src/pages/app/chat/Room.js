@@ -77,7 +77,7 @@ function Roomnew(p) {
         if (userData.isBanned)
             setIsBanned(true);
     }
-    useEffect(() =>
+    useEffect(() => {
         roomRef.get()
             .then(d => {
                 if (d.exists())
@@ -91,6 +91,7 @@ function Roomnew(p) {
             .then(() => roomRef.on("value", d => d.exists() ? getMessages(d) : null))
             .then(() => dispatch({ type: "SET_MESSAGE_LISTENER", payload: [roomRef] }))
             .catch(e => console.log(e))
+    }
         // eslint-disable-next-line react-hooks/exhaustive-deps
         , [dispatch])
     const sendMessage = e => {
@@ -162,15 +163,17 @@ function Roomnew(p) {
                             ? <button style={{ color: Colours.white, background: "none", border: "none", height: 0 }}
                                 onClick={() => deleteMessage(m.timestamp + m.userID)}>X</button> : ""}
                         <p style={{ fontSize: 18, whiteSpace: "pre-line" }}>
-                            <button onClick={() => usersObj[m.userID] ? setProfile({
-                                ...usersObj[m.userID].profile,
-                                show: true,
-                                usesPhoto: usersObj[m.userID].usesPhoto,
-                                id: m.userID,
-                            }) : null}
-                                style={{ fontWeight: "bolder", background: "none", border: "none", color: Colours.blue }}>
-                                {usersObj[m.userID] != null ? usersObj[m.userID].profile.nickname : "Deleted User"}
-                            </button>
+                            <ButtonToolTip title="View profile" arrow placement="left">
+                                <button onClick={() => usersObj[m.userID] ? setProfile({
+                                    ...usersObj[m.userID].profile,
+                                    show: true,
+                                    usesPhoto: usersObj[m.userID].usesPhoto,
+                                    id: m.userID,
+                                }) : null}
+                                    style={{ fontWeight: "bolder", background: "none", border: "none", color: Colours.blue }}>
+                                    {usersObj[m.userID] != null ? usersObj[m.userID].profile.nickname : "User"}
+                                </button>
+                            </ButtonToolTip>
                             : {m.content.split(" ")
                                 .map((t, k) => t.match(/[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)/)
                                     ? <span key={k}>
@@ -191,13 +194,15 @@ function Roomnew(p) {
                 onHide={() => setProfile({ ...profile, show: false })}
                 title={profile.nickname}
                 body={
-                    <Modal.Body>
-                        <img src={profile.usesPhoto ? profile.profilePhoto : "/assets/img/profile_sample.png"} style={{ borderColor: Colours.white, borderRadius: 30, borderWidth: 3, borderStyle: "solid", backgroundColor: Colours.black, width: 250 }} alt="Profile" />
-                        <br />
-                        <p>User ID: {profile.id}</p>
-                        {profile.favGames ? <p>Favourite Games: {profile.favGames}</p> : ""}
-                        {profile.steamProfile ? <a target="_blank" rel="noreferrer" href={"https://steamcommunity.com/" + profile.steamProfile}>Steam Profile</a> : ""}
-                        {profile.epicProfileName ? <p>Epic Profile Name: {profile.epicProfileName}</p> : ""}
+                    <Modal.Body >
+                        <div style={{ fontWeight: "bold" }}>
+                            <img src={profile.usesPhoto ? profile.profilePhoto : "/assets/img/profile_sample.png"} style={{ borderColor: Colours.white, borderRadius: 30, borderWidth: 3, borderStyle: "solid", backgroundColor: Colours.black, width: 250 }} alt="Profile" />
+                            <br />
+                            <p>User ID: {profile.id}</p>
+                            {profile.favGames ? <p>Favourite Games: {profile.favGames}</p> : ""}
+                            {profile.steamProfile ? <span><img style={{ width: 20 }} src="\assets\img\steam-icon.png" alt="steam-icon" /> <a style={{ color: Colours.black }} target="_blank" rel="noreferrer" href={"https://steamcommunity.com/" + profile.steamProfile}>Steam Profile</a></span> : ""}
+                            {profile.epicProfileName ? <span><p><img style={{ width: 20 }} src="/assets/img/epic_symbol.svg" alt="epic-icon" /> Epic Profile Name: {profile.epicProfileName}</p></span> : ""}
+                        </div>
                     </Modal.Body>
                 }
             />
